@@ -90,9 +90,9 @@ class SparseCodingLayer:
         # number of output spikes
         n = spikes.sum(axis=0)
         
-        # set diagonal entries to zero to not inhibit yourself
         self.exc_weights += self.alpha * np.outer(n, inputs - n @ self.exc_weights)
 
+        # set diagonal entries to zero to not inhibit yourself
         self.inh_weights += self.beta * (np.outer(n, n) - self.rho**2)
         self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
 

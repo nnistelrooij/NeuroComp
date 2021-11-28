@@ -48,6 +48,8 @@ class STDPLayer:
 
         Returns
         -------
+        spikes : (num_steps, ..., num_outputs) np.array
+            Spikes of each output neuron.
         accumulated_membrane_potential : (..., num_outputs) np.array
             Membrane potential integrated across time for each output neuron.
         """
@@ -70,9 +72,10 @@ class STDPLayer:
             else:
                 accumulated_membrane_potential += input_current[step]
 
-        return accumulated_membrane_potential
+        return spikes, accumulated_membrane_potential
         
     def _train(self, pre_spikes, post_spikes):
         ltp = np.any(pre_spikes, axis=0) * self.a_plus * np.exp(-self.weights)
         ltd = ~np.any(pre_spikes, axis=0) * self.a_minus
         self.weights += post_spikes[:, np.newaxis] * (ltp - ltd)
+        self.weights = np.clip(self.weights, a_min=0, a_max=1)

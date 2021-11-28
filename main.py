@@ -1,11 +1,13 @@
+import os
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 import tensorflow as tf
 from tqdm import tqdm, trange
 
-from NeuroComp import SparseCodingLayer
-from NeuroComp import StochasticSpikeLayer, Conv2DLayer, Pool2DLayer, STDPLayer
+from NeuroComp import SparseCodingLayer, StochasticSpikeLayer
+from NeuroComp import Conv2DLayer, Pool2DLayer, STDPLayer, SupervisedLayer
 from NeuroComp.utils.patches import conv2d_patches, out_size
 from NeuroComp.utils.checkpoint import checkpoint
 from NeuroComp.viz import plot_activations, plot_conv_filters, plot_distribution
@@ -21,25 +23,32 @@ def load_data():
     return (train_images, train_labels), (test_images, test_labels)
 
 
-def train_sparse_coding_layer(train_images, num_images=100, kernel_size=5):
+def train_sparse_coding_layer(train_images, kernel_size=5):
     sc_layer = SparseCodingLayer(
         num_inputs=kernel_size**2,
         num_filters=16,
         rng=rng,
     )
 
-    patches = conv2d_patches(train_images[:num_images], kernel_size=kernel_size)
-    patches = patches.reshape(-1, kernel_size**2)
-    patches = patches[rng.permutation(patches.shape[0])]
-    for patch in tqdm(patches):
-        sc_layer.present(patch)
+    if os.path.exists('checkpoints/kernel_weights.npz'):
+        sc_layer_attrs = np.load('checkpoints/kernel_weights.npz')
+        sc_layer.exc_weights = sc_layer_attrs['Wexc']
+        sc_layer.inh_weights = sc_layer_attrs['Winh']
+        sc_layer.thresholds = sc_layer_attrs['thres']
+    else:
+        patch_images = (train_images - train_images.mean()) / train_images.std()
+        patches = conv2d_patches(patch_images, kernel_size)
+        patches = patches.reshape(-1, kernel_size**2)
+        patches = patches[rng.permutation(patches.shape[0])]
+        for patch in tqdm(patches):
+            sc_layer.present(patch)
 
-    checkpoint(
-        'kernel_weights',
-        Wexc=sc_layer.exc_weights,
-        Winh=sc_layer.inh_weights,
-        thres=sc_layer.thresholds,
-    )
+        checkpoint(
+            'kernel_weights.npz',
+            Wexc=sc_layer.exc_weights,
+            Winh=sc_layer.inh_weights,
+            thres=sc_layer.thresholds,
+        )
 
     plot_conv_filters(sc_layer)
 
@@ -70,15 +79,19 @@ def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer):
     in_size = conv_layer.num_kernels * in_width * in_height
     stdp_layer = STDPLayer(in_size, 100, rng)
 
-    for i in trange(0, train_images.shape[0], 100):
-        pixel_spikes = pixel_spike_layer.present(train_images[i:i + 100])
-        conv_spikes = conv_layer.present(pixel_spikes)
-        pool_spikes = pool_layer.present(conv_spikes)
-        pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
-        for j in range(pool_spikes.shape[1]):
-            stdp_layer.present(pool_spikes[:, j])
+    if os.path.exists('checkpoints/stdp_weights.npz'):
+        stdp_layer_attrs = np.load('checkpoints/stdp_weights.npz')
+        stdp_layer.weights = stdp_layer_attrs['W']
+    else:
+        for i in trange(0, train_images.shape[0], 100):
+            pixel_spikes = pixel_spike_layer.present(train_images[i:i + 100])
+            conv_spikes = conv_layer.present(pixel_spikes)
+            pool_spikes = pool_layer.present(conv_spikes)
+            pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
+            for j in range(pool_spikes.shape[1]):
+                stdp_layer.present(pool_spikes[:, j])
 
-    checkpoint('stdp_weights', W=stdp_layer.weights)
+        checkpoint('stdp_weights.npz', W=stdp_layer.weights)
 
     plot_distribution(stdp_layer.weights)
 
@@ -88,23 +101,46 @@ def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer):
 def get_output_features(
     train_images, spike_layer, conv_layer, pool_layer, stdp_layer,
 ):
-    X, y = [], []
+    X = []
     for i in trange(0, train_images.shape[0], 100):    
         pixel_spikes = spike_layer.present(train_images[i:i + 100])
         conv_spikes = conv_layer.present(pixel_spikes)
         pool_spikes = pool_layer.present(conv_spikes)
         pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
-        out_features = stdp_layer.present(pool_spikes, train=False)
+        _, out_features = stdp_layer.present(pool_spikes, train=False)
         
         X.append(out_features)
-        y.append(train_labels[i:i + 100])
 
-    return np.concatenate(X), np.concatenate(y)
+    return np.concatenate(X)
 
+
+def train_supervised_layer(
+    train_images, train_labels, spike_layer, conv_layer, pool_layer, stdp_layer,
+):
+    num_inputs = stdp_layer.num_outputs
+    num_images = train_images.shape[0]
+    stdp_spikes = np.zeros((20, num_images, num_inputs))
+    for i in trange(0, num_images, 100):
+        pixel_spikes = spike_layer.present(train_images[i:i + 100])
+        conv_spikes = conv_layer.present(pixel_spikes)
+        pool_spikes = pool_layer.present(conv_spikes)
+        pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
+        spikes, _ = stdp_layer.present(pool_spikes, train=False)
+        
+        stdp_spikes[:, i:i + 100] = spikes
+        
+    supervised_layer = SupervisedLayer(
+        num_inputs=num_inputs,
+        num_classes=10,
+    )
+    supervised_layer.train(stdp_spikes, train_labels)
+
+    supervised_layer.test(stdp_spikes, train_labels)
 
 
 if __name__ == '__main__':
     (train_images, train_labels), _ = load_data()
+    train_images, train_labels = train_images[:3000], train_labels[:3000]
 
     kernel_size = 5
     sc_layer = train_sparse_coding_layer(train_images, kernel_size=kernel_size)
@@ -113,16 +149,21 @@ if __name__ == '__main__':
     pixel_spike_layer, conv_layer, pool_layer = layers
 
     stdp_layer = train_stdp_layer(
-        train_images[:100], pixel_spike_layer, conv_layer, pool_layer,
+        train_images, pixel_spike_layer, conv_layer, pool_layer,
     )
 
-    X, y = get_output_features(
-        train_images[:100], pixel_spike_layer, conv_layer, pool_layer, stdp_layer,
+    # train_supervised_layer(
+    #     train_images, train_labels,
+    #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer,
+    # )
+
+    X = get_output_features(
+        train_images, pixel_spike_layer, conv_layer, pool_layer, stdp_layer,
     )
 
     # determine accuracy with SVM classifier
     svm = SVC()
-    svm.fit(X, y)
+    svm.fit(X, train_labels)
     preds = svm.predict(X)
 
-    print('accuracy:', accuracy_score(y, preds))
+    print('accuracy:', accuracy_score(train_labels, preds))
