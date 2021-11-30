@@ -4,8 +4,22 @@ from NeuroComp.utils.patches import conv2d_patches
 
 
 class Pool2DLayer:
+    """Spiking 2D max-pooling layer that selects based on neuronn spike rate."""
 
     def present(self, conv_spikes):
+        """        
+        Compute output spikes after max-pooling over spatial dimensions.
+
+        Arguments
+        ---------
+        conv_spikes : (num_steps, ..., width, height) np.array
+            Input pixel spikes for each image.
+
+        Returns
+        -------
+        pool_spikes : (num_steps, ..., out_width, out_height) np.array
+            Output spikes with reduced spatial dimensions.
+        """
         # determine output shape
         out_width, out_height = np.array(conv_spikes.shape[-2:]) // 2
         out_shape = conv_spikes.shape[:-2] + (out_width, out_height)
@@ -30,10 +44,10 @@ class Pool2DLayer:
         index_arrays = []
         for dim in range(len(shape)):
             nelem //= shape[dim]
-            index_array = np.repeat(range(shape[dim]), nelem)
-            index_array = np.tile(index_array, ncomb)
+            idx_array = np.repeat(range(shape[dim]), nelem)
+            idx_array = np.tile(idx_array, ncomb)
             ncomb *= shape[dim]
 
-            index_arrays.append(index_array)
+            index_arrays.append(idx_array)
 
         return tuple(index_arrays)
