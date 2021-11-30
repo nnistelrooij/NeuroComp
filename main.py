@@ -15,7 +15,7 @@ from NeuroComp.viz import plot_activations, plot_conv_filters, plot_distribution
 
 rng = np.random.default_rng(seed=1234)
 
-def load_data():    
+def load_data():
     data = tf.keras.datasets.mnist.load_data()
     (train_images, train_labels), (test_images, test_labels) = data
     train_images, test_images = train_images / 255, test_images / 255
@@ -23,10 +23,10 @@ def load_data():
     return (train_images, train_labels), (test_images, test_labels)
 
 
-def train_sparse_coding_layer(train_images, kernel_size=5):
+def train_sparse_coding_layer(train_images, kernel_size=5, num_filters=32):
     sc_layer = SparseCodingLayer(
         num_inputs=kernel_size**2,
-        num_filters=16,
+        num_filters=num_filters,
         rng=rng,
     )
 
@@ -102,13 +102,13 @@ def get_output_features(
     train_images, spike_layer, conv_layer, pool_layer, stdp_layer,
 ):
     X = []
-    for i in trange(0, train_images.shape[0], 100):    
+    for i in trange(0, train_images.shape[0], 100):
         pixel_spikes = spike_layer.present(train_images[i:i + 100])
         conv_spikes = conv_layer.present(pixel_spikes)
         pool_spikes = pool_layer.present(conv_spikes)
         pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
         _, out_features = stdp_layer.present(pool_spikes, train=False)
-        
+
         X.append(out_features)
 
     return np.concatenate(X)
@@ -126,9 +126,9 @@ def train_supervised_layer(
         pool_spikes = pool_layer.present(conv_spikes)
         pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
         spikes, _ = stdp_layer.present(pool_spikes, train=False)
-        
+
         stdp_spikes[:, i:i + 100] = spikes
-        
+
     supervised_layer = SupervisedLayer(
         num_inputs=num_inputs,
         num_classes=10,
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     train_images, train_labels = train_images[:3000], train_labels[:3000]
 
     kernel_size = 5
-    sc_layer = train_sparse_coding_layer(train_images, kernel_size=kernel_size)
+    sc_layer = train_sparse_coding_layer(train_images)
 
     layers = load_conv_pool_layers(train_images[59], sc_layer, kernel_size)
     pixel_spike_layer, conv_layer, pool_layer = layers
