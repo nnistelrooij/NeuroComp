@@ -71,7 +71,7 @@ def load_conv_pool_layers(img, sc_layer, kernel_size):
     return pixel_spike_layer, conv_layer, pool_layer
 
 
-def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, batch_size):
+def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, neuron_count, batch_size):
     in_width, in_height = out_size(
         train_images[0].shape[-2], train_images[0].shape[-1],
         kernel_size=kernel_size, stride=2,
@@ -139,6 +139,7 @@ def train_supervised_layer(
 
 KERNEL_SIZE = 5
 BATCH_SIZE = 1000
+STDP_COUNT = 100
 TRAIN_COUNT = 30_000
 TEST_COUNT = 10_000
 
@@ -146,18 +147,18 @@ if __name__ == '__main__':
     (train_images, train_labels), _ = load_data()
     train_images, train_labels = train_images[:TRAIN_COUNT], train_labels[:TEST_COUNT]
 
-    sc_layer = train_sparse_coding_layer(train_images, kernel_size, batch_size)
+    sc_layer = train_sparse_coding_layer(train_images, KERNEL_SIZE, BATCH_SIZE)
 
-    layers = load_conv_pool_layers(train_images[59], sc_layer, kernel_size)
+    layers = load_conv_pool_layers(train_images[59], sc_layer, KERNEL_SIZE)
     pixel_spike_layer, conv_layer, pool_layer = layers
 
     stdp_layer = train_stdp_layer(
-        train_images, pixel_spike_layer, conv_layer, pool_layer, batch_size
+        train_images, pixel_spike_layer, conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE
     )
 
     # train_supervised_layer(
     #     train_images, train_labels,
-    #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
+    #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer, BATCH_SIZE
     # )
 
     X = get_output_features(
@@ -165,7 +166,9 @@ if __name__ == '__main__':
     )
 
     # determine accuracy with SVM classifier
-    svm = SVC()
+    # svm = SVC()
+    svm = SVC(kernel='poly', degree=2)
+
     svm.fit(X, train_labels)
     preds = svm.predict(X)
 
