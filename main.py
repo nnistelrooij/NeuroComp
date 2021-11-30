@@ -138,6 +138,7 @@ def train_supervised_layer(
     supervised_layer.test(stdp_spikes, train_labels)
 
 KERNEL_SIZE = 5
+FILTER_COUNT = 32
 BATCH_SIZE = 1000
 STDP_COUNT = 100
 TRAIN_COUNT = 30_000
@@ -147,7 +148,7 @@ if __name__ == '__main__':
     (train_images, train_labels), _ = load_data()
     train_images, train_labels = train_images[:TRAIN_COUNT], train_labels[:TEST_COUNT]
 
-    sc_layer = train_sparse_coding_layer(train_images, KERNEL_SIZE, BATCH_SIZE)
+    sc_layer = train_sparse_coding_layer(train_images, KERNEL_SIZE, FILTER_COUNT)
 
     layers = load_conv_pool_layers(train_images[59], sc_layer, KERNEL_SIZE)
     pixel_spike_layer, conv_layer, pool_layer = layers
