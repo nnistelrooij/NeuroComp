@@ -71,20 +71,20 @@ def load_conv_pool_layers(img, sc_layer, kernel_size):
     return pixel_spike_layer, conv_layer, pool_layer
 
 
-def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer):
+def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, batch_size):
     in_width, in_height = out_size(
         train_images[0].shape[-2], train_images[0].shape[-1],
         kernel_size=kernel_size, stride=2,
     )
     in_size = conv_layer.num_kernels * in_width * in_height
-    stdp_layer = STDPLayer(in_size, 100, rng)
+    stdp_layer = STDPLayer(in_size, batch_size, rng)
 
     if os.path.exists('checkpoints/stdp_weights.npz'):
         stdp_layer_attrs = np.load('checkpoints/stdp_weights.npz')
         stdp_layer.weights = stdp_layer_attrs['W']
     else:
-        for i in trange(0, train_images.shape[0], 100):
-            pixel_spikes = pixel_spike_layer.present(train_images[i:i + 100])
+        for i in trange(0, train_images.shape[0], batch_size):
+            pixel_spikes = pixel_spike_layer.present(train_images[i:i + batch_size])
             conv_spikes = conv_layer.present(pixel_spikes)
             pool_spikes = pool_layer.present(conv_spikes)
             pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
@@ -99,11 +99,11 @@ def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer):
 
 
 def get_output_features(
-    train_images, spike_layer, conv_layer, pool_layer, stdp_layer,
+    train_images, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
 ):
     X = []
-    for i in trange(0, train_images.shape[0], 100):
-        pixel_spikes = spike_layer.present(train_images[i:i + 100])
+    for i in trange(0, train_images.shape[0], batch_size):
+        pixel_spikes = spike_layer.present(train_images[i:i + batch_size])
         conv_spikes = conv_layer.present(pixel_spikes)
         pool_spikes = pool_layer.present(conv_spikes)
         pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
@@ -115,19 +115,19 @@ def get_output_features(
 
 
 def train_supervised_layer(
-    train_images, train_labels, spike_layer, conv_layer, pool_layer, stdp_layer,
+    train_images, train_labels, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
 ):
     num_inputs = stdp_layer.num_outputs
     num_images = train_images.shape[0]
     stdp_spikes = np.zeros((20, num_images, num_inputs))
-    for i in trange(0, num_images, 100):
-        pixel_spikes = spike_layer.present(train_images[i:i + 100])
+    for i in trange(0, num_images, batch_size):
+        pixel_spikes = spike_layer.present(train_images[i:i + batch_size])
         conv_spikes = conv_layer.present(pixel_spikes)
         pool_spikes = pool_layer.present(conv_spikes)
         pool_spikes = pool_spikes.reshape(pool_spikes.shape[:2] + (-1,))
         spikes, _ = stdp_layer.present(pool_spikes, train=False)
 
-        stdp_spikes[:, i:i + 100] = spikes
+        stdp_spikes[:, i:i + batch_size] = spikes
 
     supervised_layer = SupervisedLayer(
         num_inputs=num_inputs,
@@ -143,18 +143,20 @@ if __name__ == '__main__':
     train_images, train_labels = train_images[:3000], train_labels[:3000]
 
     kernel_size = 5
-    sc_layer = train_sparse_coding_layer(train_images)
+    batch_size = 1000
+
+    sc_layer = train_sparse_coding_layer(train_images, kernel_size, batch_size)
 
     layers = load_conv_pool_layers(train_images[59], sc_layer, kernel_size)
     pixel_spike_layer, conv_layer, pool_layer = layers
 
     stdp_layer = train_stdp_layer(
-        train_images, pixel_spike_layer, conv_layer, pool_layer,
+        train_images, pixel_spike_layer, conv_layer, pool_layer, batch_size
     )
 
     # train_supervised_layer(
     #     train_images, train_labels,
-    #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer,
+    #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
     # )
 
     X = get_output_features(
