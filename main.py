@@ -77,7 +77,7 @@ def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, ne
         kernel_size=kernel_size, stride=2,
     )
     in_size = conv_layer.num_kernels * in_width * in_height
-    stdp_layer = STDPLayer(in_size, batch_size, rng)
+    stdp_layer = STDPLayer(in_size, neuron_count, rng)
 
     if os.path.exists('checkpoints/stdp_weights.npz'):
         stdp_layer_attrs = np.load('checkpoints/stdp_weights.npz')
