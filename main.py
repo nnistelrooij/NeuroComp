@@ -71,7 +71,7 @@ def load_conv_pool_layers(img, sc_layer, kernel_size):
     return pixel_spike_layer, conv_layer, pool_layer
 
 
-def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, neuron_count, batch_size):
+def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, neuron_count, batch_size, kernel_size):
     in_width, in_height = out_size(
         train_images[0].shape[-2], train_images[0].shape[-1],
         kernel_size=kernel_size, stride=2,
@@ -153,9 +153,8 @@ if __name__ == '__main__':
     layers = load_conv_pool_layers(train_images[59], sc_layer, KERNEL_SIZE)
     pixel_spike_layer, conv_layer, pool_layer = layers
 
-    stdp_layer = train_stdp_layer(
-        train_images, pixel_spike_layer, conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE
-    )
+    stdp_layer = train_stdp_layer(train_images, pixel_spike_layer,
+                                  conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE, KERNEL_SIZE)
 
     # train_supervised_layer(
     #     train_images, train_labels,
