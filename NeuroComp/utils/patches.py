@@ -42,21 +42,21 @@ def conv2d_patches(img, kernel_size=5, pad=0, stride=1):
 
     Arguments
     ---------
-    img : (..., width, height) np.array
-        Image with arbitrary number of batch dimensions.
+    img : (..., channels, width, height) np.array
+        Image with channels and arbitrary number of batch dimensions.
     kernel_size : int
         Number of pixels in the width and height of the kernel.
     pad : int
         Number of zero pixels padded to the width and height of the input.
     stride : int
-        Number of pixels skippeds each iteration across width or height.
+        Number of pixels skipped each iteration across width or height.
 
     Returns
     -------
-    out : (..., out_width, out_height, kernel_size, kernel_size) np.array
+    out : (..., out_width, out_height, channels, kernel_size, kernel_size) np.array
         Output image patches across the input image.
     """
-    img_width, img_height = img.shape[-2:]
+    channels, img_width, img_height= img.shape[-3:]
     out_width, out_height = out_size(
         img_width, img_height, kernel_size, pad, stride,
     )
@@ -64,12 +64,12 @@ def conv2d_patches(img, kernel_size=5, pad=0, stride=1):
     pad_width = *((0, 0),)*(img.ndim - 2), (pad, pad), (pad, pad)
     padded_img = np.pad(img, pad_width)
 
-    patches_shape = (out_width, out_height, kernel_size, kernel_size)
-    out = np.empty(img.shape[:-2] + patches_shape)
+    patches_shape = (out_width, out_height, channels, kernel_size, kernel_size)
+    out = np.empty(img.shape[:-3] + patches_shape)
     for x in range(out_width):
         for y in range(out_height):
             x_slice = slice(stride * x, stride * x + kernel_size)
             y_slice = slice(stride * y, stride * y + kernel_size)
-            out[..., x, y, :, :] = padded_img[..., x_slice, y_slice]
+            out[..., x, y, :, :, :] = padded_img[..., x_slice, y_slice]
     
     return out

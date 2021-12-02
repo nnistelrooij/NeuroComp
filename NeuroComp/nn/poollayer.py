@@ -12,12 +12,12 @@ class Pool2DLayer:
 
         Arguments
         ---------
-        conv_spikes : (num_steps, ..., width, height) np.array
+        conv_spikes : (num_steps, ..., channels, width, height) np.array
             Input pixel spikes for each image.
 
         Returns
         -------
-        pool_spikes : (num_steps, ..., out_width, out_height) np.array
+        pool_spikes : (num_steps, ..., channels, out_width, out_height) np.array
             Output spikes with reduced spatial dimensions.
         """
         # determine output shape

@@ -21,7 +21,7 @@ def plot_activations(pixel_spikes):
     num_kernels = pixel_spikes.shape[-3]
 
     fig, axs = plt.subplots(num_kernels // 4, 4, figsize=(num_kernels // 2, 8))
-    for i, ax in zip(range(16), axs.flatten()):
+    for i, ax in zip(range(num_kernels), axs.flatten()):
         ax.imshow(pixel_spikes.mean(0)[i], interpolation='bicubic')
         ax.axis('off')
     fig.suptitle('Activations')
