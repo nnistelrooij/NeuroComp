@@ -15,6 +15,7 @@ from NeuroComp.viz import plot_activations, plot_conv_filters, plot_distribution
 
 rng = np.random.default_rng(seed=1234)
 
+
 def load_data():
     data = tf.keras.datasets.mnist.load_data()
     (train_images, train_labels), (test_images, test_labels) = data
@@ -24,11 +25,7 @@ def load_data():
 
 
 def train_sparse_coding_layer(train_images, kernel_size=5, num_filters=32):
-    sc_layer = SparseCodingLayer(
-        num_inputs=kernel_size**2,
-        num_filters=num_filters,
-        rng=rng,
-    )
+    sc_layer = SparseCodingLayer(num_inputs=kernel_size**2, num_filters=num_filters, rng=rng)
 
     if os.path.exists('checkpoints/kernel_weights.npz'):
         sc_layer_attrs = np.load('checkpoints/kernel_weights.npz')
@@ -43,12 +40,7 @@ def train_sparse_coding_layer(train_images, kernel_size=5, num_filters=32):
         for patch in tqdm(patches):
             sc_layer.present(patch)
 
-        checkpoint(
-            'kernel_weights.npz',
-            Wexc=sc_layer.exc_weights,
-            Winh=sc_layer.inh_weights,
-            thres=sc_layer.thresholds,
-        )
+        checkpoint('kernel_weights.npz', Wexc=sc_layer.exc_weights, Winh=sc_layer.inh_weights, thres=sc_layer.thresholds)
 
     plot_conv_filters(sc_layer)
 
@@ -72,10 +64,7 @@ def load_conv_pool_layers(img, sc_layer, kernel_size):
 
 
 def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, neuron_count, batch_size, kernel_size):
-    in_width, in_height = out_size(
-        train_images[0].shape[-2], train_images[0].shape[-1],
-        kernel_size=kernel_size, stride=2,
-    )
+    in_width, in_height = out_size(train_images[0].shape[-2], train_images[0].shape[-1], kernel_size=kernel_size, stride=2)
     in_size = conv_layer.num_kernels * in_width * in_height
     stdp_layer = STDPLayer(in_size, neuron_count, rng)
 
@@ -98,9 +87,7 @@ def train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, ne
     return stdp_layer
 
 
-def get_output_features(
-    train_images, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
-):
+def get_output_features(train_images, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size):
     X = []
     for i in trange(0, train_images.shape[0], batch_size):
         pixel_spikes = spike_layer.present(train_images[i:i + batch_size])
@@ -114,9 +101,7 @@ def get_output_features(
     return np.concatenate(X)
 
 
-def train_supervised_layer(
-    train_images, train_labels, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size
-):
+def train_supervised_layer(train_images, train_labels, spike_layer, conv_layer, pool_layer, stdp_layer, batch_size):
     num_inputs = stdp_layer.num_outputs
     num_images = train_images.shape[0]
     stdp_spikes = np.zeros((20, num_images, num_inputs))
@@ -137,6 +122,7 @@ def train_supervised_layer(
 
     supervised_layer.test(stdp_spikes, train_labels)
 
+
 KERNEL_SIZE = 5
 FILTER_COUNT = 32
 BATCH_SIZE = 1000
@@ -145,31 +131,29 @@ TRAIN_COUNT = 30_000
 TEST_COUNT = 10_000
 
 if __name__ == '__main__':
-    (train_images, train_labels), _ = load_data()
-    train_images, train_labels = train_images[:TRAIN_COUNT], train_labels[:TEST_COUNT]
+    (train_images, train_labels), (test_images, test_labels) = load_data()
+    train_images, train_labels = train_images[:TRAIN_COUNT], train_labels[:TRAIN_COUNT]
+    test_images, test_labels = test_images[:TEST_COUNT], test_labels[:TEST_COUNT]
 
     sc_layer = train_sparse_coding_layer(train_images, KERNEL_SIZE, FILTER_COUNT)
 
     layers = load_conv_pool_layers(train_images[59], sc_layer, KERNEL_SIZE)
     pixel_spike_layer, conv_layer, pool_layer = layers
 
-    stdp_layer = train_stdp_layer(train_images, pixel_spike_layer,
-                                  conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE, KERNEL_SIZE)
+    stdp_layer = train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE, KERNEL_SIZE)
 
     # train_supervised_layer(
     #     train_images, train_labels,
     #     pixel_spike_layer, conv_layer, pool_layer, stdp_layer, BATCH_SIZE
     # )
 
-    X = get_output_features(
-        train_images, pixel_spike_layer, conv_layer, pool_layer, stdp_layer,
-    )
+    train_x = get_output_features(train_images, pixel_spike_layer, conv_layer, pool_layer, stdp_layer, BATCH_SIZE)
 
     # determine accuracy with SVM classifier
     # svm = SVC()
     svm = SVC(kernel='poly', degree=2)
+    svm.fit(train_x, train_labels)
 
-    svm.fit(X, train_labels)
-    preds = svm.predict(X)
-
-    print('accuracy:', accuracy_score(train_labels, preds))
+    test_x = get_output_features(test_images, pixel_spike_layer, conv_layer, pool_layer, stdp_layer, BATCH_SIZE)
+    preds = svm.predict(test_x)
+    print('accuracy:', accuracy_score(test_labels, preds))
