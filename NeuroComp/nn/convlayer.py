@@ -13,7 +13,7 @@ class Conv2DLayer:
         Number of kernels that are applied to input images.
     kernel_size : int
         Number of pixels in the width and height of each kernel.
-    kernel_weights : (k, kernel_size, kernel_size) np.array
+    kernel_weights : (num_kernels, channels, kernel_size, kernel_size) np.array
         Weights of each convolutional kernel, normalized to [-1, 1].
     """
     
@@ -23,11 +23,11 @@ class Conv2DLayer:
 
         Arguments
         ---------
-        kernel_weights : (k, kernel_size, kernel_size) np.array
+        kernel_weights : (num_kernels, channels, kernel_size, kernel_size) np.array
             Weights of each convolutional kernel.        
         """
-        self.num_kernels = kernel_weights.shape[0]
         self.kernel_size = kernel_weights.shape[-1]
+        self.num_kernels = kernel_weights.shape[0]
 
         # normalize all kernel weights to [-1, 1]
         self.kernel_weights = kernel_weights - kernel_weights.min()
@@ -40,7 +40,7 @@ class Conv2DLayer:
 
         Arguments
         ---------
-        pixel_spikes : (..., width, height)
+        pixel_spikes : (..., channels, width, height)
             Input pixel spikes for each image.
         num_steps : int
             Number of time steps to compute output spikes for.
@@ -52,12 +52,12 @@ class Conv2DLayer:
         """
         out_width, out_height = out_size(*pixel_spikes.shape[-2:], self.kernel_size)
         membrane_potential = np.zeros(
-            pixel_spikes.shape[1:-2] + (self.num_kernels, out_width, out_height)
+            pixel_spikes.shape[1:-3] + (self.num_kernels, out_width, out_height)
         )
         spikes = np.zeros((num_steps,) + membrane_potential.shape, dtype=bool)
 
         patches = conv2d_patches(pixel_spikes, self.kernel_size)
-        patch_spikes = np.einsum('kwh,...rcwh->...krc', self.kernel_weights, patches)
+        patch_spikes = np.einsum('kcwh,...ijcwh->...kij', self.kernel_weights, patches)
         for step in range(num_steps):
             membrane_potential += patch_spikes[step]
             spikes[step] = membrane_potential >= 1

@@ -17,15 +17,22 @@ rng = np.random.default_rng(seed=1234)
 
 
 def load_data():
-    data = tf.keras.datasets.mnist.load_data()
+    data = tf.keras.datasets.fashion_mnist.load_data()
     (train_images, train_labels), (test_images, test_labels) = data
     train_images, test_images = train_images / 255, test_images / 255
+    train_images = train_images[:, np.newaxis]
+    test_images = test_images[:, np.newaxis]
 
     return (train_images, train_labels), (test_images, test_labels)
 
 
 def train_sparse_coding_layer(train_images, kernel_size=5, num_filters=32):
-    sc_layer = SparseCodingLayer(num_inputs=kernel_size**2, num_filters=num_filters, rng=rng)
+    num_channels = train_images.shape[-3]
+    sc_layer = SparseCodingLayer(
+        num_inputs=num_channels * kernel_size**2,
+        num_filters=num_filters,
+        rng=rng,
+    )
 
     if os.path.exists('checkpoints/kernel_weights.npz'):
         sc_layer_attrs = np.load('checkpoints/kernel_weights.npz')
@@ -33,16 +40,22 @@ def train_sparse_coding_layer(train_images, kernel_size=5, num_filters=32):
         sc_layer.inh_weights = sc_layer_attrs['Winh']
         sc_layer.thresholds = sc_layer_attrs['thres']
     else:
-        patch_images = (train_images - train_images.mean()) / train_images.std()
+        patch_images = train_images - train_images.mean(axis=(0, 2, 3), keepdims=True)
+        patch_images /= train_images.std(axis=(0, 2, 3), keepdims=True)
         patches = conv2d_patches(patch_images, kernel_size)
-        patches = patches.reshape(-1, kernel_size**2)
+        patches = patches.reshape(-1, num_channels * kernel_size**2)
         patches = patches[rng.permutation(patches.shape[0])]
         for patch in tqdm(patches):
             sc_layer.present(patch)
 
-        checkpoint('kernel_weights.npz', Wexc=sc_layer.exc_weights, Winh=sc_layer.inh_weights, thres=sc_layer.thresholds)
+        checkpoint(
+            'kernel_weights_300.npz',
+            Wexc=sc_layer.exc_weights,
+            Winh=sc_layer.inh_weights,
+            thres=sc_layer.thresholds,
+        )
 
-    plot_conv_filters(sc_layer)
+    # plot_conv_filters(sc_layer)
 
     return sc_layer
 
@@ -51,14 +64,15 @@ def load_conv_pool_layers(img, sc_layer, kernel_size):
     pixel_spike_layer = StochasticSpikeLayer(rng)
     pixel_spikes = pixel_spike_layer.present(img)
 
-    kernel_weights = sc_layer.exc_weights.reshape(-1, kernel_size, kernel_size)
+    channels = img.shape[0]
+    kernel_weights = sc_layer.exc_weights.reshape(-1, channels, kernel_size, kernel_size)
     conv_layer = Conv2DLayer(kernel_weights)
     conv_spikes = conv_layer.present(pixel_spikes)
-    plot_activations(conv_spikes)
+    # plot_activations(conv_spikes)
 
     pool_layer = Pool2DLayer()
     pool_spikes = pool_layer.present(conv_spikes)
-    plot_activations(pool_spikes)
+    # plot_activations(pool_spikes)
 
     return pixel_spike_layer, conv_layer, pool_layer
 
@@ -125,10 +139,10 @@ def train_supervised_layer(train_images, train_labels, spike_layer, conv_layer, 
 
 KERNEL_SIZE = 5
 FILTER_COUNT = 32
-BATCH_SIZE = 1000
+BATCH_SIZE = 200
 STDP_COUNT = 100
-TRAIN_COUNT = 30_000
-TEST_COUNT = 10_000
+TRAIN_COUNT = 100
+TEST_COUNT = 100
 
 if __name__ == '__main__':
     (train_images, train_labels), (test_images, test_labels) = load_data()
@@ -137,7 +151,7 @@ if __name__ == '__main__':
 
     sc_layer = train_sparse_coding_layer(train_images, KERNEL_SIZE, FILTER_COUNT)
 
-    layers = load_conv_pool_layers(train_images[59], sc_layer, KERNEL_SIZE)
+    layers = load_conv_pool_layers(train_images[45], sc_layer, KERNEL_SIZE)
     pixel_spike_layer, conv_layer, pool_layer = layers
 
     stdp_layer = train_stdp_layer(train_images, pixel_spike_layer, conv_layer, pool_layer, STDP_COUNT, BATCH_SIZE, KERNEL_SIZE)
