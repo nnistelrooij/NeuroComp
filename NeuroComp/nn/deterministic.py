@@ -8,10 +8,8 @@ from .layer import Layer
 
 
 class Deterministic(Layer):
-    def __init__(self, rng):
+    def __init__(self):
         super().__init__(Data.NEXT)
-
-        self.rng = rng
 
     def _build(self):
         return (self.step_count, *self.prev.shape)
