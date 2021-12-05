@@ -1,7 +1,16 @@
+from typing import Any
+
 import numpy as np
+from numpy.typing import NDArray
 
 
-def out_size(img_width, img_height, kernel_size, pad=0, stride=1):
+def out_size(
+    img_width: int,
+    img_height: int,
+    kernel_size: int,
+    pad: int = 0,
+    stride: int = 1,
+):
     """
     Compute width and height of output after convolution.
 
@@ -34,9 +43,14 @@ def out_size(img_width, img_height, kernel_size, pad=0, stride=1):
     out_height = (img_height + 2 * pad - kernel_size) // stride + 1
     
     return out_width, out_height
+    
 
-
-def conv2d_patches(img, kernel_size=5, pad=0, stride=1):
+def conv2d_patches(
+    img: NDArray[Any],
+    kernel_size: int = 5,
+    pad: int = 0,
+    stride: int = 1,
+):
     """
     Compute patches of input image of size (kernel_size, kernel_size).
 
