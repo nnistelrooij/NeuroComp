@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score
 
 from NeuroComp.data import ImageInput
 from NeuroComp.nn import Deterministic, Sequence, Stochastic
-from NeuroComp.nn import Conv2D, Pool2D, STDP, SVM
+from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
 
 
 rng = np.random.default_rng(1234)
@@ -16,22 +16,23 @@ verbose = True
 # test_images = test_images.transpose(0, 3, 1, 2)  # 32, 32, 3 -> 3, 32, 32
 
 model = Sequence(
-    ImageInput(shape=(28, 28), step_count=20, batch_size=10),
+    ImageInput(shape=(28, 28), step_count=20, batch_size=100),
     # Deterministic(),
     Stochastic(rng=rng),
     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=verbose),
     Pool2D(verbose=verbose),
     # Conv2D(filter_count=32, filter_size=3, rng=rng, verbose=verbose),
     # Pool2D(verbose=verbose),
-    STDP(neuron_count=1, rng=rng, verbose=verbose),
-    SVM(kernel='poly', degree=2),
+    STDP(neuron_count=100, rng=rng, verbose=verbose),
+    Supervised(rng, class_count=10, verbose=verbose),
+    # SVM(kernel='poly', degree=2),
 )
 
 num_images = 3000
 model.fit(train_images[:num_images], train_labels[:num_images])
 out = model.predict(test_images[:num_images])
 print('accuracy:', accuracy_score(test_labels[:num_images], out))
-model.save('model.npz')
+model.save('model_supervised.npz')
 
 model2 = Sequence(
     ImageInput(shape=(28, 28), step_count=20, batch_size=10),
