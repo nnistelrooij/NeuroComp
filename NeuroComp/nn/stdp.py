@@ -6,6 +6,7 @@ from scipy.special import softmax
 from tqdm import tqdm
 
 from ..base import Data
+from ..viz import plot_distribution
 from .layer import Layer
 
 
@@ -19,6 +20,7 @@ class STDP(Layer):
         lr_ltp: float = 0.001,
         lr_ltd: float = 0.00075,
         max_dt: int = 5,
+        verbose: bool = False,
     ):
         super().__init__(Data.SPIKES)
 
@@ -28,6 +30,7 @@ class STDP(Layer):
         self.lr_ltp = lr_ltp
         self.lr_ltd = lr_ltd
         self.max_dt = max_dt
+        self.verbose = verbose
 
         self.weights = None
 
@@ -111,13 +114,15 @@ class STDP(Layer):
 
         # pre-allocate arrays to save time in loop
         batch_size = inputs.shape[1]
-        potential = np.zeros((batch_size, self.neuron_count))
-        acc_potential = np.zeros(inputs.shape[:2] + (self.neuron_count,))
-        spikes = np.zeros(inputs.shape[:2] + self.shape, dtype=bool)
+        potential = np.empty((batch_size, self.neuron_count))
+        acc_potential = np.empty(inputs.shape[:2] + (self.neuron_count,))
+        spikes = np.empty(inputs.shape[:2] + self.shape, dtype=bool)
 
         # compute accumulated membrane potential and spikes
         num_batches = inputs.shape[0]
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting stdp'):
+            potential[...] = 0
+
             input_current = np.einsum('hi,bsi->bsh', self.weights, batch)
             spike_probs = softmax(input_current, axis=-1)
             acc_potential[i] = input_current.sum(1)
@@ -128,6 +133,9 @@ class STDP(Layer):
                     (spike_probs[:, step] >= 0.5)
                 )
                 potential *= ~spikes[i, :, step]
+
+        if self.is_fitting and self.verbose:
+            plot_distribution(self.weights)
 
         if self.fit_out == Data.FEATURES:
             return acc_potential

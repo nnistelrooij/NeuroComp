@@ -6,6 +6,7 @@ from tqdm import tqdm, trange
 
 from ..base import Data
 from ..utils.patches import conv2d_patches, out_size
+from ..viz import plot_conv_filters, plot_activations
 from .layer import Layer
 
 
@@ -18,7 +19,8 @@ class Conv2D(Layer):
         lr_exc: float = 0.0001,
         lr_inh: float = 0.01,
         lr_thres: float = 0.02,
-        avg_spike_rate:float = 0.05,
+        avg_spike_rate: float = 0.05,
+        verbose: bool = False,
     ):
         super().__init__(Data.FEATURES)
         
@@ -30,6 +32,7 @@ class Conv2D(Layer):
         self.lr_inh = lr_inh
         self.lr_thres = lr_thres
         self.avg_spike_rate = avg_spike_rate
+        self.verbose = verbose
         
         self.exc_weights = None
         self.inh_weights = None
@@ -71,16 +74,20 @@ class Conv2D(Layer):
                 for patch in patches:
                     self._fit_patch(patch)
                     t.update()
-        
-        # normalize filter weights to [-1, 1]
-        self.exc_weights = self.exc_weights - self.exc_weights.min()
-        self.exc_weights /= self.exc_weights.max()
-        self.exc_weights = 2 * self.exc_weights - 1
 
         # reshape flat kernel weights back to 3 dimensions
         self.exc_weights = self.exc_weights.reshape(
             self.filter_count, self.prev.shape[1], self.filter_size, self.filter_size,
         )
+
+        # show histogram of filter weights and visualizations of each filter
+        if self.verbose:
+            plot_conv_filters(self.exc_weights)
+
+        # normalize filter weights to [-1, 1]
+        self.exc_weights = self.exc_weights - self.exc_weights.min()
+        self.exc_weights /= self.exc_weights.max()
+        self.exc_weights = 2 * self.exc_weights - 1
 
     def _fit_patch(self, patch: NDArray[np.float64]):
         self.potential[...] = 0
@@ -105,12 +112,14 @@ class Conv2D(Layer):
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
         batch_size = inputs.shape[1]
-        potential = np.zeros((batch_size,) + self.shape[1:])
-        acc_potential = np.zeros(inputs.shape[:2] + (1,) + self.shape[1:])
-        spikes = np.zeros(inputs.shape[:2] + self.shape, dtype=bool)
+        potential = np.empty((batch_size,) + self.shape[1:])
+        acc_potential = np.empty(inputs.shape[:2] + (1,) + self.shape[1:])
+        spikes = np.empty(inputs.shape[:2] + self.shape, dtype=bool)
         
         num_batches = inputs.shape[0]
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting conv'):
+            potential[...] = 0
+            
             patches = conv2d_patches(batch, self.filter_size)
             patch_spikes = np.einsum('kcwh,bsxycwh->bskxy', self.exc_weights, patches)
             acc_potential[i] = patch_spikes.sum(axis=1, keepdims=True)
@@ -119,8 +128,12 @@ class Conv2D(Layer):
                 spikes[i, :, step] = potential >= 1
                 potential *= ~spikes[i, :, step]
         
-        if self.is_fitting and self.fit_out == Data.FEATURES:
-            return acc_potential
+        if self.is_fitting:
+            if self.verbose:
+                plot_activations(spikes[0, 0])
+        
+            if self.fit_out == Data.FEATURES:
+                return acc_potential
 
         return spikes
   

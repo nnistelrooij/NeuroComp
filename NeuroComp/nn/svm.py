@@ -22,7 +22,7 @@ class SVM(Layer):
         inputs = inputs.reshape(-1, np.prod(inputs.shape[2:]))
 
         labels = labels.flatten()
-        if inputs.shape[0] is not labels.shape[0]:
+        if inputs.shape[0] != labels.shape[0]:
             raise ValueError('Number of inputs not equal to number of labels.')
 
         self.svm.fit(inputs, labels)

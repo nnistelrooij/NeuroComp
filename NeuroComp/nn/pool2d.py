@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -6,14 +6,17 @@ from tqdm import tqdm
 
 from ..base import Data
 from ..utils.patches import conv2d_patches
+from ..viz import plot_activations
 from .layer import Layer
 
 
 class Pool2D(Layer):
     """Spiking 2D max-pooling layer that selects based on neuronn spike rate."""
 
-    def __init__(self):
+    def __init__(self, verbose: bool = False):
         super().__init__(Data.NEXT)
+
+        self.verbose = verbose
 
     def _build(self):
         step_count, channels, width, height = self.prev.shape
@@ -44,8 +47,12 @@ class Pool2D(Layer):
 
             out[i] = pool_spikes
 
-        if self.is_fitting and self.fit_out == Data.FEATURES:
-            out = np.squeeze(out, axis=2)
+        if self.is_fitting:
+            if self.verbose:
+                plot_activations(out[0, 0])
+            
+            if self.fit_out == Data.FEATURES:
+                out = np.squeeze(out, axis=2)
         
         return out
 

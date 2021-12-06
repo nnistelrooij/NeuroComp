@@ -24,7 +24,8 @@ class Stochastic(Layer):
         if self.is_fitting and self.fit_out == Data.FEATURES:
             return inputs
         
-        return self.rng.uniform(size=self.shape) < inputs[:, :, np.newaxis]
+        out_shape = inputs.shape[:2] + self.shape
+        return self.rng.uniform(size=out_shape) < inputs[:, :, np.newaxis]
   
     def _save(self, arch: List[Any]):
         arch.append(self.shape)

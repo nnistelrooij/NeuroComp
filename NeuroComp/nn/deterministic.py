@@ -27,7 +27,7 @@ class Deterministic(Layer):
         for step in range(self.step_count):
             potential += inputs
             spikes[:, :, step] = potential >= 1
-            potential -= inputs * spikes[:, :, step]
+            potential -= spikes[:, :, step]
         
         return spikes
   
