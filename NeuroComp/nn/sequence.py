@@ -17,6 +17,8 @@ class Sequence(Layer):
 
         self(layers[-1])
 
+        self.layers = layers
+
     def _build(self):
         return self.prev.shape
   
