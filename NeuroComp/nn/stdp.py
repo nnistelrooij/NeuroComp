@@ -36,6 +36,13 @@ class STDP(Layer):
         self.potential = None
         self.spikes = None
 
+        self.spike_buf = None
+        self.pre_spike_start = None
+        self.pre_spike_end = None
+        self.pre_spike_bools = None
+        self.weight_deltas = None
+        self.ltd = None
+
     def _build(self):
         step_count, channels, width, height = self.prev.shape
 
@@ -47,6 +54,13 @@ class STDP(Layer):
         self.potential = np.empty(self.neuron_count)
         self.spikes = np.zeros((step_count, self.neuron_count), dtype=bool)
 
+        self.spike_buf = np.empty((self.neuron_count,), dtype=bool)
+        self.pre_spike_start = np.maximum(np.arange(step_count) - self.max_dt, 0)
+        self.pre_spike_end = np.arange(step_count) + 1
+        self.pre_spike_bools = np.empty((input_count,), dtype=np.bool)
+        self.weight_deltas = np.empty_like(self.weights)
+        self.ltd = np.empty((input_count,), dtype=np.float64)
+
         return step_count, self.neuron_count
 
     def _fit(self, inputs: NDArray[np.float64], labels: Optional[NDArray[np.int64]]):
@@ -54,7 +68,7 @@ class STDP(Layer):
         in_count = np.prod(inputs.shape[3:])
         inputs = inputs.reshape(-1, self.step_count, in_count)
         inputs = inputs[self.rng.permutation(inputs.shape[0])]
-        
+
         # learn STDP weights by presenting many images
         for image in tqdm(inputs, desc='Fitting stdp'):
             self._fit_image(image)
@@ -62,7 +76,7 @@ class STDP(Layer):
     def _fit_image(self, image: NDArray[bool]):
         self.potential[...] = 0
 
-        self.input_current = np.einsum('hi,si->sh', self.weights, image)
+        np.einsum('hi,si->sh', self.weights, image, out=self.input_current)
         self.spike_probs = softmax(self.input_current, axis=-1)
         for step in range(self.step_count):
             self.potential += self.input_current[step]
@@ -72,12 +86,23 @@ class STDP(Layer):
             )
             self.potential *= ~self.spikes[step]
 
-            pre_spikes = image[max(step - self.max_dt, 0):step + 1]
-            ltp = np.any(pre_spikes, axis=0) * self.lr_ltp * np.exp(-self.weights)
-            ltd = ~np.any(pre_spikes, axis=0) * self.lr_ltd
+            pre_spikes = image[self.pre_spike_start[step]:self.pre_spike_end[step]]
+            # ltp = np.any(pre_spikes, axis=0) * lr_ltp * np.exp(-self.weights)
+            np.any(pre_spikes, axis=0, out=self.pre_spike_bools)
+            np.exp(-self.weights, out=self.weight_deltas)
+            np.multiply(self.pre_spike_bools, self.weight_deltas, out=self.weight_deltas)
+            np.multiply(self.weight_deltas, self.lr_ltp, out=self.weight_deltas)
 
-            self.weights += self.spikes[step, :, np.newaxis] * (ltp - ltd)
-            self.weights = np.clip(self.weights, a_min=0, a_max=1)
+            # ltd = ~np.any(pre_spikes, axis=0) * lr_ltd
+            np.invert(self.pre_spike_bools, out=self.pre_spike_bools)
+            np.multiply(self.pre_spike_bools, self.lr_ltd, out=self.ltd)
+
+            # self.weights = self.spikes[step, :, np.newaxis] * (ltp - ltd)
+            np.subtract(self.weight_deltas, self.ltd, out=self.weight_deltas)
+            np.multiply(self.spikes[step, :, np.newaxis], self.weight_deltas, out=self.weight_deltas)
+            np.add(self.weights, self.weight_deltas, out=self.weights)
+
+            np.clip(self.weights, a_min=0, a_max=1, out=self.weights)
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
         # flatten each image with channels to vectors of spikes
@@ -106,9 +131,9 @@ class STDP(Layer):
 
         if self.fit_out == Data.FEATURES:
             return acc_potential
-        
+
         return spikes
-    
+
     def _save(self, arch):
         arch.append(self.shape)
         arch.append(self.step_count)
@@ -121,12 +146,24 @@ class STDP(Layer):
         arch.append(self.spike_probs)
         arch.append(self.potential)
         arch.append(self.spikes)
+        arch.append(self.spike_buf)
+        arch.append(self.pre_spike_start)
+        arch.append(self.pre_spike_end)
+        arch.append(self.pre_spike_bools)
+        arch.append(self.weight_deltas)
+        arch.append(self.ltd)
 
         self.prev._save(arch)
-  
+
     def _load(self, arch):
         self.prev._load(arch)
 
+        self.ltd = arch.pop()
+        self.weight_deltas = arch.pop()
+        self.pre_spike_bools = arch.pop()
+        self.pre_spike_end = arch.pop()
+        self.pre_spike_start = arch.pop()
+        self.spike_buf = arch.pop()
         self.spikes = arch.pop()
         self.potential = arch.pop()
         self.spike_probs = arch.pop()
