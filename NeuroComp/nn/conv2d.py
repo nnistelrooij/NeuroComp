@@ -21,6 +21,7 @@ class Conv2D(Layer):
         lr_inh: float = 0.01,
         lr_thres: float = 0.02,
         avg_spike_rate: float = 0.05,
+        norm: bool = True,
         verbose: bool = False,
     ):
         super().__init__(Data.FEATURES)
@@ -33,6 +34,7 @@ class Conv2D(Layer):
         self.lr_inh = lr_inh
         self.lr_thres = lr_thres
         self.avg_spike_rate = avg_spike_rate
+        self.norm = norm
         self.verbose = verbose
         
         self.exc_weights = None
@@ -86,9 +88,10 @@ class Conv2D(Layer):
             plot_conv_filters(self.exc_weights)
 
         # normalize filter weights to [-1, 1]
-        self.exc_weights = self.exc_weights - self.exc_weights.min()
-        self.exc_weights /= self.exc_weights.max()
-        self.exc_weights = 2 * self.exc_weights - 1
+        if self.norm:
+            self.exc_weights = self.exc_weights - self.exc_weights.min()
+            self.exc_weights /= self.exc_weights.max()
+            self.exc_weights = 2 * self.exc_weights - 1
 
     def _fit_patch(self, patch: NDArray[np.float64]):
         self.potential[...] = 0

@@ -61,6 +61,9 @@ class STDP(Layer):
         # learn STDP weights by presenting many images
         for image in tqdm(inputs, desc='Fitting stdp'):
             self._fit_image(image)
+        
+        if self.verbose:
+            plot_distribution(self.weights)
 
     def _fit_image(self, image: NDArray[bool]):
         self.potential[...] = 0
@@ -108,9 +111,6 @@ class STDP(Layer):
                     (spike_probs[:, step] >= 0.5)
                 )
                 potential *= ~spikes[i, :, step]
-
-        if self.is_fitting and self.verbose:
-            plot_distribution(self.weights)
 
         if self.fit_out == Data.FEATURES:
             return acc_potential
