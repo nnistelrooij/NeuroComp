@@ -21,6 +21,7 @@ class Conv2D(Layer):
         lr_inh: float = 0.01,
         lr_thres: float = 0.02,
         avg_spike_rate: float = 0.05,
+        memory: float = 1.0,
         norm: bool = True,
         verbose: bool = False,
     ):
@@ -34,6 +35,7 @@ class Conv2D(Layer):
         self.lr_inh = lr_inh
         self.lr_thres = lr_thres
         self.avg_spike_rate = avg_spike_rate
+        self.memory = memory
         self.norm = norm
         self.verbose = verbose
         
@@ -99,6 +101,7 @@ class Conv2D(Layer):
         # compute spikes of sparse coding layer
         exc_potential = self.exc_weights @ patch
         for step in range(1, self.step_count + 1):
+            self.potential *= self.memory
             self.potential += exc_potential
             self.potential -= self.inh_weights @ self.spikes[step - 1]
 
@@ -128,6 +131,7 @@ class Conv2D(Layer):
             patch_spikes = np.einsum('kcwh,bsxycwh->bskxy', self.exc_weights, patches)
             acc_potential[i] = patch_spikes.sum(axis=1, keepdims=True)
             for step in range(self.step_count):
+                potential *= self.memory
                 potential += patch_spikes[:, step]
                 spikes[i, :, step] = potential >= 1
                 potential *= ~spikes[i, :, step]
@@ -137,7 +141,7 @@ class Conv2D(Layer):
                 plot_activations(spikes[0, 0])
         
             if self.fit_out == Data.FEATURES:
-                return acc_potential
+                return spikes.mean(axis=2, keepdims=True)
 
         return spikes
   
@@ -150,6 +154,8 @@ class Conv2D(Layer):
         arch.append(self.lr_inh)
         arch.append(self.lr_thres)
         arch.append(self.avg_spike_rate)
+        arch.append(self.memory)
+        arch.append(self.norm)
         arch.append(self.exc_weights)
         arch.append(self.inh_weights)
         arch.append(self.thresholds)
@@ -166,6 +172,8 @@ class Conv2D(Layer):
         self.thresholds = arch.pop()
         self.inh_weights = arch.pop()
         self.exc_weights = arch.pop()
+        self.norm = bool(arch.pop())
+        self.memory = float(arch.pop())
         self.avg_spike_rate = float(arch.pop())
         self.lr_thres = float(arch.pop())
         self.lr_inh = float(arch.pop())

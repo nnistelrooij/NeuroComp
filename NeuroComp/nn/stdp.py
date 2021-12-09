@@ -20,6 +20,7 @@ class STDP(Layer):
         lr_ltp: float = 0.001,
         lr_ltd: float = 0.00075,
         max_dt: int = 5,
+        memory: float = 1.0,
         verbose: bool = False,
     ):
         super().__init__(Data.SPIKES)
@@ -30,6 +31,7 @@ class STDP(Layer):
         self.lr_ltp = lr_ltp
         self.lr_ltd = lr_ltd
         self.max_dt = max_dt
+        self.memory = memory
         self.verbose = verbose
 
         self.weights = None
@@ -85,6 +87,7 @@ class STDP(Layer):
         np.einsum('hi,si->sh', self.weights, image, out=self.input_current)
         self.spike_probs = softmax(self.input_current, axis=-1)
         for step in range(self.step_count):
+            self.potential *= self.memory
             self.potential += self.input_current[step]
             self.spikes[step] = (
                 (self.potential >= 0.5) &
@@ -130,6 +133,7 @@ class STDP(Layer):
             spike_probs = softmax(input_current, axis=-1)
             acc_potential[i] = input_current.sum(1)
             for step in range(self.step_count):
+                potential *= self.memory
                 potential += input_current[:, step]
                 spikes[i, :, step] = (
                     (potential >= 0.5) &
@@ -150,6 +154,8 @@ class STDP(Layer):
         arch.append(self.lr_ltd)
         arch.append(self.max_dt)
         arch.append(self.weights)
+        arch.append(self.memory)
+        arch.append(self.norm)
         arch.append(self.input_current)
         arch.append(self.spike_probs)
         arch.append(self.potential)
@@ -176,6 +182,8 @@ class STDP(Layer):
         self.potential = arch.pop()
         self.spike_probs = arch.pop()
         self.input_current = arch.pop()
+        self.norm = bool(arch.pop())
+        self.memory = float(arch.pop())
         self.weights = arch.pop()
         self.max_dt = int(arch.pop())
         self.lr_ltd = float(arch.pop())

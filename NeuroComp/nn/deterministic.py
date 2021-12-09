@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List
 
 import numpy as np
 from numpy.typing import NDArray
