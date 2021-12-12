@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 import numpy as np
 from numpy.typing import NDArray
@@ -51,7 +51,7 @@ class Pool2D(Layer):
             if self.verbose:
                 plot_activations(out[0, 0])
             
-            if self.fit_out == Data.FEATURES:
+            if self.fit_out == Data.SCALARS:
                 out = np.squeeze(out, axis=2)
         
         return out
@@ -69,14 +69,16 @@ class Pool2D(Layer):
 
         return tuple(index_arrays)
     
-    def _save(self, arch):
+    def _save(self, arch: List[Any]):
         arch.append(self.shape)
         arch.append(self.step_count)
 
         self.prev._save(arch)
   
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())
+        self.shape = (step_count, *self.shape[1:]) if step_count else self.shape

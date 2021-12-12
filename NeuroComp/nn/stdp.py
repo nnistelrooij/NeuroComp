@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -20,6 +20,7 @@ class STDP(Layer):
         lr_ltp: float = 0.001,
         lr_ltd: float = 0.00075,
         max_dt: int = 5,
+        memory: float = 1.0,
         verbose: bool = False,
     ):
         super().__init__(Data.SPIKES)
@@ -30,6 +31,7 @@ class STDP(Layer):
         self.lr_ltp = lr_ltp
         self.lr_ltd = lr_ltd
         self.max_dt = max_dt
+        self.memory = memory
         self.verbose = verbose
 
         self.weights = None
@@ -85,6 +87,7 @@ class STDP(Layer):
         np.einsum('hi,si->sh', self.weights, image, out=self.input_current)
         self.spike_probs = softmax(self.input_current, axis=-1)
         for step in range(self.step_count):
+            self.potential *= self.memory
             self.potential += self.input_current[step]
             self.spikes[step] = (
                 (self.potential >= 0.5) &
@@ -128,8 +131,9 @@ class STDP(Layer):
 
             input_current = np.einsum('hi,bsi->bsh', self.weights, batch)
             spike_probs = softmax(input_current, axis=-1)
-            acc_potential[i] = input_current.sum(1)
+            acc_potential[i] = input_current.mean(1)
             for step in range(self.step_count):
+                potential *= self.memory
                 potential += input_current[:, step]
                 spikes[i, :, step] = (
                     (potential >= 0.5) &
@@ -137,12 +141,12 @@ class STDP(Layer):
                 )
                 potential *= ~spikes[i, :, step]
 
-        if self.fit_out == Data.FEATURES:
+        if self.fit_out == Data.SCALARS:
             return acc_potential
 
         return spikes
 
-    def _save(self, arch):
+    def _save(self, arch: List[Any]):
         arch.append(self.shape)
         arch.append(self.step_count)
         arch.append(self.neuron_count)
@@ -150,6 +154,7 @@ class STDP(Layer):
         arch.append(self.lr_ltd)
         arch.append(self.max_dt)
         arch.append(self.weights)
+        arch.append(self.memory)
         arch.append(self.input_current)
         arch.append(self.spike_probs)
         arch.append(self.potential)
@@ -163,8 +168,8 @@ class STDP(Layer):
 
         self.prev._save(arch)
 
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         self.ltd = arch.pop()
         self.weight_deltas = arch.pop()
@@ -176,10 +181,13 @@ class STDP(Layer):
         self.potential = arch.pop()
         self.spike_probs = arch.pop()
         self.input_current = arch.pop()
+        self.memory = float(arch.pop())
         self.weights = arch.pop()
         self.max_dt = int(arch.pop())
         self.lr_ltd = float(arch.pop())
         self.lr_ltp = float(arch.pop())
         self.neuron_count = int(arch.pop())
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())
+        self.shape = (step_count, *self.shape[1:]) if step_count else self.shape
