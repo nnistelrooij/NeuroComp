@@ -54,7 +54,8 @@ class ImageInput(Input):
         arch.append(self.step_count)
         arch.append(self.batch_size)
 
-    def _load(self, arch: List[Any]):
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
         self.batch_size = int(arch.pop())
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())

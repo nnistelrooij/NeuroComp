@@ -19,7 +19,7 @@ class Deterministic(Layer):
         inputs = inputs - inputs.min()
         inputs = inputs / inputs.max()
 
-        if self.is_fitting and self.fit_out == Data.FEATURES:
+        if self.is_fitting and self.fit_out == Data.SCALARS:
             return inputs
 
         potential = np.zeros_like(inputs)
@@ -37,8 +37,10 @@ class Deterministic(Layer):
 
         self.prev._save(arch)
   
-    def _load(self, arch: List[Any]):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())
+        self.shape = (step_count, *self.shape[1:]) if step_count else self.shape

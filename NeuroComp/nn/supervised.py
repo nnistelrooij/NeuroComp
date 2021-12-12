@@ -1,144 +1,153 @@
-from typing import Any
+from typing import Any, List, Optional
 
+import nengo, nengo_dl
 import numpy as np
 from numpy.typing import NDArray
-from tqdm import tqdm
+import tensorflow as tf
 
-from ..base import Data
-from ..viz import plot_distribution
 from .layer import Layer
+from ..base import Data
 
 
 class Supervised(Layer):
 
     def __init__(
         self,
-        rng: np.random.Generator,
-        class_count : int = 10,
-        lr_exc: float = 0.0001,
-        lr_inh: float = 0.01,
-        lr_thres: float = 0.02,
-        avg_spike_rate: float = 0.1,
-        verbose: bool = False,
+        class_count: int = 10,
+        max_rate: int = 100,
+        batch_size: int = 12,
     ):
         super().__init__(Data.SPIKES)
-        
-        self.rng = rng
+
         self.class_count = class_count
 
-        self.lr_exc = lr_exc
-        self.lr_inh = lr_inh
-        self.lr_thres = lr_thres
-        self.avg_spike_rate = avg_spike_rate
-        self.verbose = verbose
-        
-        self.exc_weights = None
-        self.inh_weights = None
-        self.thresholds = None
+        self.max_rate = max_rate
+        self.amp = 1 / self.max_rate
+        self.batch_size = batch_size
 
-        self.potential = None
-        self.spikes = None
+        self.model = None
+        self.dense = None
 
     def _build(self):
-        in_size = self.prev.shape[1]
-        self.exc_weights = self.rng.uniform(size=(self.class_count, in_size))
-        self.inh_weights = np.zeros((self.class_count, self.class_count))
-        self.thresholds = np.full(self.class_count, fill_value=5.0)
-
-        self.potential = np.empty(self.class_count)
-        self.spikes = np.zeros((self.step_count + 1, self.class_count), dtype=bool)
+        self.model, self.dense1, self.dense2 = self._build_model()
 
         return ()
-  
-    def _fit(self, inputs: NDArray[bool], labels: NDArray[np.int64]):
-        # flatten each image with channels to vectors of spikes
-        in_size = inputs.shape[-1]
-        inputs = inputs.reshape(-1, self.step_count, in_size)
-        inputs = inputs[self.rng.permutation(inputs.shape[0])]
 
-        # create dense labels in the one-hot format
-        one_hot_labels = np.zeros((labels.shape[0], self.class_count))
-        one_hot_labels[np.arange(labels.shape[0]), labels] = 1
+    def _build_model(self, weights: Optional[List[NDArray[np.float32]]] = None):
+        model = nengo.Network(seed=1234)
+        with model:
+            # set up default parameters for ensembles
+            ensemble_config = model.config[nengo.Ensemble]
+            ensemble_config.neuron_type = nengo.SpikingRectifiedLinear(
+                amplitude=self.amp#, initial_state={'voltage': 0},
+            )
+            ensemble_config.max_rates = nengo.dists.Choice([self.max_rate])
+            ensemble_config.intercepts = nengo.dists.Choice([0])
 
-        # learn STDP weights by presenting many images
-        for image, label in tqdm(zip(inputs, one_hot_labels), total=inputs.shape[0], desc='Fitting supervised'):
-            self._fit_image(image, label)
-
-        # show histogram of filter weights and visualizations of each filter
-        if self.verbose:
-            plot_distribution(self.exc_weights)
-
-    def _fit_image(self, image: NDArray[bool], label: int):
-        self.potential[...] = 0
-
-        # compute spikes of sparse coding layer
-        exc_potential = np.einsum('hi,si->sh', self.exc_weights, image)
-        for step in range(1, self.step_count + 1):
-            self.potential += exc_potential[step - 1]
-            self.potential -= self.inh_weights @ self.spikes[step - 1]
-
-            self.spikes[step] = self.potential >= self.thresholds
-            self.potential *= ~self.spikes[step]
-    
-        # update parameters of sparse coding layer
-        n = image.sum(axis=0)
-        self.exc_weights += self.lr_exc * np.outer(label - self.exc_weights @ n,n)
-    
-        n = self.spikes.sum(axis=0)
-        self.inh_weights += self.lr_inh * (np.outer(n, n) - self.avg_spike_rate ** 2)
-        self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
-
-        self.thresholds += self.lr_thres * (n - self.avg_spike_rate)
-
-    def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
-        # pre-allocate arrays to save time in loop
-        batch_size = inputs.shape[1]
-        potential = np.empty((batch_size, self.class_count))
-        spikes = np.empty(inputs.shape[:2] + (self.step_count, self.class_count), dtype=bool)
-        
-        num_batches = inputs.shape[0]
-        for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting supervised'):
-            potential[...] = 0
+            # train network with zero synaptic delays
+            model.config[nengo.Connection].synapse = None 
             
-            input_current = np.einsum('hi,bsi->bsh', self.exc_weights, batch)
-            for step in range(self.step_count):
-                potential += input_current[:, step]
-                spikes[i, :, step] = potential >= 1
-                potential *= ~spikes[i, :, step]
+            inp = nengo.Node([0] * self.prev.shape[-1])
 
-        spikes = spikes.sum(axis=2).reshape(-1, self.class_count)
-        preds = spikes.argmax(axis=-1)
+            if weights is None:
+                dense1 = tf.keras.layers.Dense(
+                    units=self.prev.shape[-1],
+                    activation=tf.nn.relu,
+                )
+                dense2 = tf.keras.layers.Dense(
+                    units=self.class_count,
+                )
+            else:
+                dense1 = tf.keras.layers.Dense(
+                    units=self.prev.shape[-1],
+                    activation=tf.nn.relu,
+                    kernel_initializer=tf.constant_initializer(weights[0]),
+                    bias_initializer=tf.constant_initializer(weights[1]),
+                )
+                dense2 = tf.keras.layers.Dense(
+                    units=self.class_count,
+                    kernel_initializer=tf.constant_initializer(weights[2]),
+                    bias_initializer=tf.constant_initializer(weights[3]),
+                )
 
-        return preds
+            x1 = nengo_dl.TensorNode(
+                dense1,
+                shape_in=(self.prev.shape[-1],), pass_time=False,
+            )
+            nengo.Connection(inp, x1)
+
+            x2 = nengo_dl.TensorNode(
+                dense2,
+                shape_in=(self.prev.shape[-1],), pass_time=False,
+            )
+            nengo.Connection(x1, x2)
+            
+            out = nengo.Node(size_in=2)
+            nengo.Connection(x2, out)
+
+            nengo.Probe(out)
+            nengo.Probe(out, synapse=0.1)
+
+        return model, dense1, dense2
+
+    def _fit(self, inputs: NDArray[bool], labels: NDArray[np.int64]):
+        x = {
+            self.model.nodes[0]: inputs.reshape(-1, *self.prev.shape),
+        }
+        y = {
+            self.model.probes[0]: np.tile(labels.reshape(-1, 1, 1), reps=(1, self.step_count, 1)),
+        }
+
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001)           
+        objective = {
+            self.model.probes[0]: tf.losses.SparseCategoricalCrossentropy(from_logits=True)
+        }
+        
+        with nengo_dl.Simulator(self.model, minibatch_size=self.batch_size, seed=1234) as sim:
+            sim.compile(optimizer=optimizer, loss=objective)
+            sim.fit(x, y, n_steps=self.step_count, epochs=10)
+            sim.freeze_params(self.model)
+
+    def _predict(self, inputs: NDArray[bool]) -> NDArray[np.int64]:
+        for conn in self.model.all_connections:
+            conn.synapse = 0.005
+
+        batch_size = inputs.shape[1]        
+        preds = np.empty(inputs.shape[:2], dtype=np.int64)
+        with nengo_dl.Simulator(self.model, minibatch_size=batch_size, seed=1234) as sim:
+            for i, batch in enumerate(inputs):
+                sim.run_steps(
+                    self.step_count,
+                    data={self.model.nodes[0]: batch},
+                )
+
+                out = sim.data[self.model.probes[1]][:, -1]
+                preds[i] = out.argmax(axis=-1)
+        
+        return preds.flatten()
   
-    def _save(self, arch):
-        arch.append(self.shape)
+    def _save(self, arch: List[Any]):
         arch.append(self.step_count)
         arch.append(self.class_count)
-        arch.append(self.lr_exc)
-        arch.append(self.lr_inh)
-        arch.append(self.lr_thres)
-        arch.append(self.avg_spike_rate)
-        arch.append(self.exc_weights)
-        arch.append(self.inh_weights)
-        arch.append(self.thresholds)
-        arch.append(self.potential)
-        arch.append(self.spikes)
+        arch.append(self.max_rate)
+        arch.append(self.amp)
+        arch.append(self.batch_size)
+        arch.append(self.dense1.weights[0].numpy())
+        arch.append(self.dense1.weights[1].numpy())
+        arch.append(self.dense2.weights[0].numpy())
+        arch.append(self.dense2.weights[1].numpy())
 
         self.prev._save(arch)
   
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
-        self.spikes = arch.pop()
-        self.potential = arch.pop()
-        self.thresholds = arch.pop()
-        self.inh_weights = arch.pop()
-        self.exc_weights = arch.pop()
-        self.avg_spike_rate = float(arch.pop())
-        self.lr_thres = float(arch.pop())
-        self.lr_inh = float(arch.pop())
-        self.lr_exc = float(arch.pop())
+        weights = [arch.pop(), arch.pop(), arch.pop(), arch.pop()][::-1]
+        self.batch_size = int(arch.pop())
+        self.amp = float(arch.pop())
+        self.max_rate = int(arch.pop())
         self.class_count = int(arch.pop())
         self.step_count = int(arch.pop())
-        self.shape = tuple(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
+
+        self.model, self.dense1, self.dense2 = self._build_model(weights)

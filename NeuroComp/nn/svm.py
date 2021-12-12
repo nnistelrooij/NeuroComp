@@ -1,4 +1,5 @@
 import pickle
+from typing import Any, List
 
 import numpy as np
 from numpy.typing import NDArray
@@ -11,7 +12,7 @@ from .layer import Layer
 class SVM(Layer):
 
     def __init__(self, **kwargs):
-        super().__init__(Data.FEATURES)
+        super().__init__(Data.SCALARS)
 
         self.svm = SVC(**kwargs)
 
@@ -31,14 +32,14 @@ class SVM(Layer):
         inputs = inputs.reshape(-1, np.prod(inputs.shape[2:]))
         return self.svm.predict(inputs)    
     
-    def _save(self, arch):
+    def _save(self, arch: List[Any]):
         s = pickle.dumps(self.svm)
         arch.append(s)
 
         self.prev._save(arch)
   
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         s = bytes(arch.pop())
         self.svm = pickle.loads(s)

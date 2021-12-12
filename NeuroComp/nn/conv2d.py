@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -25,7 +25,7 @@ class Conv2D(Layer):
         norm: bool = True,
         verbose: bool = False,
     ):
-        super().__init__(Data.FEATURES)
+        super().__init__(Data.SCALARS)
         
         self.filter_count = filter_count
         self.filter_size = filter_size
@@ -140,12 +140,12 @@ class Conv2D(Layer):
             if self.verbose:
                 plot_activations(spikes[0, 0])
         
-            if self.fit_out == Data.FEATURES:
+            if self.fit_out == Data.SCALARS:
                 return spikes.mean(axis=2, keepdims=True)
 
         return spikes
   
-    def _save(self, arch):
+    def _save(self, arch: List[Any]):
         arch.append(self.shape)
         arch.append(self.step_count)
         arch.append(self.filter_count)
@@ -164,8 +164,8 @@ class Conv2D(Layer):
 
         self.prev._save(arch)
   
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         self.spikes = arch.pop()
         self.potential = arch.pop()
@@ -181,4 +181,6 @@ class Conv2D(Layer):
         self.filter_size = int(arch.pop())
         self.filter_count = int(arch.pop())
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())
+        self.shape = (step_count, *self.shape[1:]) if step_count else self.shape

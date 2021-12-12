@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -131,7 +131,7 @@ class STDP(Layer):
 
             input_current = np.einsum('hi,bsi->bsh', self.weights, batch)
             spike_probs = softmax(input_current, axis=-1)
-            acc_potential[i] = input_current.sum(1)
+            acc_potential[i] = input_current.mean(1)
             for step in range(self.step_count):
                 potential *= self.memory
                 potential += input_current[:, step]
@@ -141,12 +141,12 @@ class STDP(Layer):
                 )
                 potential *= ~spikes[i, :, step]
 
-        if self.fit_out == Data.FEATURES:
+        if self.fit_out == Data.SCALARS:
             return acc_potential
 
         return spikes
 
-    def _save(self, arch):
+    def _save(self, arch: List[Any]):
         arch.append(self.shape)
         arch.append(self.step_count)
         arch.append(self.neuron_count)
@@ -168,8 +168,8 @@ class STDP(Layer):
 
         self.prev._save(arch)
 
-    def _load(self, arch):
-        self.prev._load(arch)
+    def _load(self, arch: List[NDArray[Any]], step_count: int):
+        self.prev._load(arch, step_count)
 
         self.ltd = arch.pop()
         self.weight_deltas = arch.pop()
@@ -188,4 +188,6 @@ class STDP(Layer):
         self.lr_ltp = float(arch.pop())
         self.neuron_count = int(arch.pop())
         self.step_count = int(arch.pop())
+        self.step_count = step_count if step_count else self.step_count
         self.shape = tuple(arch.pop())
+        self.shape = (step_count, *self.shape[1:]) if step_count else self.shape
