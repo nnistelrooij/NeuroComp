@@ -66,7 +66,8 @@ class Conv2D(Layer):
         inputs = inputs / inputs.std()
 
         # reshape filter weights to flattened arrays
-        in_size = np.prod(self.exc_weights.shape[1:])
+        in_channels = self.exc_weights.shape[1]
+        in_size = in_channels * self.filter_size * self.filter_size
         self.exc_weights = self.exc_weights.reshape(self.filter_count, in_size)
 
         # learn filter weights by sparse coding task on image patches
@@ -82,7 +83,7 @@ class Conv2D(Layer):
 
         # reshape flat kernel weights back to 3 dimensions
         self.exc_weights = self.exc_weights.reshape(
-            self.filter_count, self.prev.shape[1], self.filter_size, self.filter_size,
+            self.filter_count, in_channels, self.filter_size, self.filter_size,
         )
 
         # show histogram of filter weights and visualizations of each filter
@@ -118,21 +119,18 @@ class Conv2D(Layer):
         self.thresholds += self.lr_thres * (n - self.avg_spike_rate)
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
-        batch_size = inputs.shape[1]
+        num_batches, batch_size = inputs.shape[:2]
         potential = np.empty((batch_size,) + self.shape[1:])
-        acc_potential = np.empty(inputs.shape[:2] + (1,) + self.shape[1:])
-        spikes = np.empty(inputs.shape[:2] + self.shape, dtype=bool)
+        spikes = np.empty((num_batches, batch_size) + self.shape, dtype=bool)
         
-        num_batches = inputs.shape[0]
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting conv'):
             potential[...] = 0
             
             patches = conv2d_patches(batch, self.filter_size)
-            patch_spikes = np.einsum('kcwh,bsxycwh->bskxy', self.exc_weights, patches)
-            acc_potential[i] = patch_spikes.sum(axis=1, keepdims=True)
+            patch_potentials = np.einsum('kcwh,bsxycwh->bskxy', self.exc_weights, patches)
             for step in range(self.step_count):
                 potential *= self.memory
-                potential += patch_spikes[:, step]
+                potential += patch_potentials[:, step]
                 spikes[i, :, step] = potential >= 1
                 potential *= ~spikes[i, :, step]
         
