@@ -26,26 +26,23 @@ class Pool2D(Layer):
 
     def _predict(self, inputs: NDArray[Any]) -> NDArray[Any]:        
         # determine output shape
-        num_batches, batch_size, num_steps = inputs.shape[:3]
-        out_shape = (batch_size, num_steps) + self.shape[1:]
+        num_batches, batch_size, step_count = inputs.shape[:3]
+        out_shape = (batch_size, step_count) + self.shape[1:]
 
         out = np.zeros((num_batches,) + out_shape, dtype=inputs.dtype)
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting pool'):
             # get 2x2 non-overlapping patches of conv spikes
-            conv_patches = conv2d_patches(batch, kernel_size=2, stride=2)
-            conv_patches = conv_patches.transpose(0, 1, 4, 2, 3, 5, 6)
-            conv_patches = conv_patches.reshape(out_shape + (4,))
+            patches = conv2d_patches(batch, kernel_size=2, stride=2)
+            patches = patches.transpose(0, 1, 4, 2, 3, 5, 6)
+            patches = patches.reshape(out_shape + (4,))
 
             # get index arrays to take spikes with maximum rate
             index_arrays = self._index_arrays(out_shape)
-            max_indices = conv_patches.sum(1).argmax(-1).reshape(-1)
-            max_indices = np.tile(max_indices, num_steps)
+            max_indices = patches.sum(1).argmax(-1).flatten()
+            max_indices = np.tile(max_indices, step_count)
 
             # take spikes with maximum rate and reshape
-            pool_spikes = conv_patches[index_arrays + (max_indices,)]
-            pool_spikes = pool_spikes.reshape(out_shape)
-
-            out[i] = pool_spikes
+            out[i] = patches[index_arrays + (max_indices,)].reshape(out_shape)
 
         if self.is_fitting:
             if self.verbose:

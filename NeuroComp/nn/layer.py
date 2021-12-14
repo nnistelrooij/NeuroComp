@@ -74,6 +74,6 @@ class Layer(Base): # subclasses implement: `_build`, `_fit`, `_predict`, `_save`
         # fit current layer
         self._fit(temp, labels)
 
-    def predict(self, inputs: NDArray[Any]) -> NDArray[Any]:
+    def predict(self, inputs: NDArray[np.float64]) -> NDArray[Any]:
         temp = self.prev.predict(inputs)
         return self._predict(temp)

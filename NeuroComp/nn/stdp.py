@@ -70,8 +70,8 @@ class STDP(Layer):
 
     def _fit(self, inputs: NDArray[np.float64], labels: Optional[NDArray[np.int64]]):
         # flatten each image with channels to vectors of spikes
-        in_count = np.prod(inputs.shape[3:])
-        inputs = inputs.reshape(-1, self.step_count, in_count)
+        in_size = np.prod(inputs.shape[3:])
+        inputs = inputs.reshape(-1, self.step_count, in_size)
         inputs = inputs[self.rng.permutation(inputs.shape[0])]
 
         # learn STDP weights by presenting many images
@@ -106,7 +106,7 @@ class STDP(Layer):
             np.invert(self.pre_spike_bools, out=self.pre_spike_bools)
             np.multiply(self.pre_spike_bools, self.lr_ltd, out=self.ltd)
 
-            # self.weights = self.spikes[step, :, np.newaxis] * (ltp - ltd)
+            # self.weights += self.spikes[step, :, np.newaxis] * (ltp - ltd)
             np.subtract(self.weight_deltas, self.ltd, out=self.weight_deltas)
             np.multiply(self.spikes[step, :, np.newaxis], self.weight_deltas, out=self.weight_deltas)
             np.add(self.weights, self.weight_deltas, out=self.weights)
@@ -115,17 +115,16 @@ class STDP(Layer):
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
         # flatten each image with channels to vectors of spikes
-        in_count = np.prod(inputs.shape[3:])
-        inputs = inputs.reshape(inputs.shape[:3] + (in_count,))
+        in_size = np.prod(inputs.shape[3:])
+        inputs = inputs.reshape(inputs.shape[:3] + (in_size,))
 
         # pre-allocate arrays to save time in loop
-        batch_size = inputs.shape[1]
+        num_batches, batch_size = inputs.shape[:2]
         potential = np.empty((batch_size, self.neuron_count))
         acc_potential = np.empty(inputs.shape[:2] + (self.neuron_count,))
         spikes = np.empty(inputs.shape[:2] + self.shape, dtype=bool)
 
         # compute accumulated membrane potential and spikes
-        num_batches = inputs.shape[0]
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting stdp'):
             potential[...] = 0
 
