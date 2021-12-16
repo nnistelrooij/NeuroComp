@@ -39,6 +39,7 @@ class Conv2D(Layer):
         self.norm = norm
         self.verbose = verbose
         
+        self.filters_shape = ()
         self.exc_weights = None
         self.inh_weights = None
         self.thresholds = None
@@ -49,8 +50,13 @@ class Conv2D(Layer):
     def _build(self):
         step_count, channels, width, height = self.prev.shape
 
-        filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
-        self.exc_weights = self.rng.uniform(size=filters_shape)
+        self.filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
+        self.exc_weights = self.rng.uniform(size=self.filters_shape)
+        if self.norm:
+            self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
+            self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
+            self.exc_weights = self.exc_weights.reshape(self.filters_shape)
+
         self.inh_weights = np.zeros((self.filter_count, self.filter_count))
         self.thresholds = np.full(self.filter_count, fill_value=5.0)
 
@@ -91,10 +97,9 @@ class Conv2D(Layer):
             plot_conv_filters(self.exc_weights)
 
         # normalize filter weights to [-1, 1]
-        if self.norm:
-            self.exc_weights = self.exc_weights - self.exc_weights.min()
-            self.exc_weights /= self.exc_weights.max()
-            self.exc_weights = 2 * self.exc_weights - 1
+        self.exc_weights = self.exc_weights - self.exc_weights.min()
+        self.exc_weights /= self.exc_weights.max()
+        self.exc_weights = 2 * self.exc_weights - 1
 
     def _fit_patch(self, patch: NDArray[np.float64]):
         self.potential[...] = 0
@@ -112,6 +117,10 @@ class Conv2D(Layer):
         # update parameters of sparse coding layer
         n = self.spikes.sum(axis=0)
         self.exc_weights += self.lr_exc * np.outer(n, patch - n @ self.exc_weights)
+        if self.norm:
+            self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
+            self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
+            self.exc_weights = self.exc_weights.reshape(self.filters_shape)
     
         self.inh_weights += self.lr_inh * (np.outer(n, n) - self.avg_spike_rate ** 2)
         self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
