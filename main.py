@@ -25,7 +25,7 @@ model = Sequence(
 split = StratifiedShuffleSplit(n_splits=1, train_size=30_000, random_state=1234)
 train_idxs, _ = next(split.split(train_images, train_labels))
 model.fit(train_images[train_idxs], train_labels[train_idxs])
-file_name = 'mnist-30000x20x200xstoch_conv-32x7xFx0.0_pool_stdp-128x0.0_svm.npz'
+file_name = 'mnist-30000x20x200xstoch_conv-32x5xFx0.0_pool_stdp-128x0.0_svm.npz'
 model.save('models/' + file_name)
 
 model.load('models/' + file_name)
