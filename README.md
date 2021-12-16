@@ -6,7 +6,7 @@ Project repository for the 2021 version of the Neuromorphic Computing course
 ## Baseline model by layer
 
 1. **Stochastic**
-2. **Conv** (size=5, filter_count=32, memory=0.0, norm=True, weight_init='uniform')
+2. **Conv** (size=5, filter_count=32, memory=0.0, norm=False, weight_init='uniform')
 3. **Pool**
 4. **Stdp** (memory=0.0, neuron_count=128)
 5. **Svm**
@@ -19,7 +19,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 
 - **Convolutional kernel size**: 3, 5, 7
 - **Memory constant (conv/stdp layer)**: 0.0, 0.2, 0.4, 0.6, 0.8, 1.0
-- **Weight normalization**: True, False
+- **Euclidean norm convolutional weight normalization**: True, False
 - **Convolutional learning rule**: Oja, BCM [^1]
 - **STDP neuron count**: 64, 128, 256
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes 3, 5, or 7.
