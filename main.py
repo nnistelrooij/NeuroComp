@@ -13,7 +13,7 @@ rng = np.random.default_rng(1234)
 memory = 0.0
 verbose = False
 stdp_neurons = 128
-norm = True
+norm = False
 model = Sequence(
     ImageInput(shape=(28, 28), step_count=20, batch_size=200),
     # Deterministic(),
