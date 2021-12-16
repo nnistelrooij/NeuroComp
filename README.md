@@ -28,8 +28,8 @@ Pick a test and start training; once it is done, upload the model file to `model
 ## Put your accuracies down here
 
 | Parameters | Accuracy |
-|------------|----------|
-| base       |      -   |
+|------------|---------:|
+| baseline   |   0.9250 |
 
 [^1]: oja is implemented; Niels is working on BCM
 [^2]: uniform is implemented; Jasper is working on the other initialization procedures
