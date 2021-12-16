@@ -6,6 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from NeuroComp.data import ImageInput
 from NeuroComp.nn import Deterministic, Sequence, Stochastic
 from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
+from NeuroComp.viz import plot_conv_filters
 
 
 rng = np.random.default_rng(1234)
