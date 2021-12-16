@@ -10,13 +10,12 @@ from NeuroComp.viz import plot_conv_filters
 
 
 rng = np.random.default_rng(1234)
-memory = 0.0
 model = Sequence(
     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
     Stochastic(rng=rng),
-    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=verbose, norm=False, memory=0.0),
-    Pool2D(verbose=verbose),
-    STDP(neuron_count=128, rng=rng, verbose=verbose, memory=0.0),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, norm=False, memory=0.0),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
     SVM(kernel='poly', degree=2),
 )
 
