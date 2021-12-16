@@ -21,7 +21,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 - **Memory constant (conv/stdp layer)**: ~~0.0~~, 0.2, 0.4, 0.6, 0.8, 1.0
 - **Euclidean norm convolutional weight normalization**: True, ~~False~~
 - **Convolutional learning rule**: ~~Oja~~, BCM [^1]
-- **STDP neuron count**: 64, ~~128~~, 256
+- **STDP neuron count**: ~~64~~, ~~128~~, 256
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes 3, 5, or 7.
 - **Convolutional weight initialization**: ~~uniform~~, gaussian, glorot, gabor [^2]
 
