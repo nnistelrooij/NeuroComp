@@ -6,6 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from NeuroComp.data import ImageInput
 from NeuroComp.nn import Deterministic, Sequence, Stochastic
 from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
+from NeuroComp.viz import plot_conv_filters
 
 
 def train_conv(train_images, num_images, num_iters, norm, verbose=False, memory=0.0):
@@ -74,12 +75,13 @@ memory = 0.0
 norm = True
 conv_model = train_conv(
     train_images,
-    num_images=3_000,
-    num_iters=10,
+    num_images=30_000,
+    num_iters=1,
     norm=norm,
     verbose=verbose,
     memory=memory,
 )
+conv_model.save('conv_model.npz')
 
 num_images = 30_000
 stdp_neurons = 128
