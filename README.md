@@ -15,15 +15,15 @@ Project repository for the 2021 version of the Neuromorphic Computing course
 
 We assume individual modifications to the base model, so we run tests on the baseline model with a single hyperparameter changed each time.
 
-Pick a test and start training; once it is done, upload the model file to `models/` with an appropriate name. **Evaluate on the entire test set**, and put the accuracy in the table below. Edit this file and surround the test you are currently working on with `~~` (strikethrough) symbols, that way we can keep track of our progress.
+Pick a test and start training; once it is done, upload the model file to `models/` with an appropriate name. Evaluate on the entire test set, and put the accuracy in the table below. Edit this file and surround the test you are currently working on with `~~` (strikethrough) symbols, that way we can track progress.
 
-- **Convolutional kernel size**: 3, 5, ~~7~~
-- **Memory constant (conv/stdp layer)**: 0.0, 0.2, 0.4, 0.6, 0.8, 1.0
-- **Euclidean norm convolutional weight normalization**: True, False
-- **Convolutional learning rule**: Oja, BCM [^1]
-- **STDP neuron count**: 64, 128, 256
+- **Convolutional kernel size**: 3, ~~5~~, 7
+- **Memory constant (conv/stdp layer)**: ~~0.0~~, 0.2, 0.4, 0.6, 0.8, 1.0
+- **Euclidean norm convolutional weight normalization**: True, ~~False~~
+- **Convolutional learning rule**: ~~Oja~~, BCM [^1]
+- **STDP neuron count**: 64, ~~128~~, 256
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes 3, 5, or 7.
-- **Convolutional weight initialization**: uniform, gaussian, glorot, gabor [^2]
+- **Convolutional weight initialization**: ~~uniform~~, gaussian, glorot, gabor [^2]
 
 ## Put your accuracies down here
 
