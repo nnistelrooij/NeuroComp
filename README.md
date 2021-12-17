@@ -32,7 +32,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 |:-----------------|---------:|
 | baseline         |   0.9250 |
 | neuron_count=64  |   0.9193 |
-| neuron_count=256 |   ?????? |
+| neuron_count=256 |   0.9379 |
 
 [^1]: oja is implemented; Niels is working on BCM
 [^2]: uniform is implemented; Jasper is working on the other initialization procedures
