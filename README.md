@@ -36,7 +36,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | memory=0.25      |   0.9529 |
 | memory=0.5       |   0.9112 |
 | memory=0.75      |   0.9578 |
-| Euclid norm=True |   ------ |
+| Euclid norm=True |   0.9349 |
 
 [^1]: oja is implemented; Niels is working on BCM
 [^2]: uniform is implemented; Jasper is working on the other initialization procedures
