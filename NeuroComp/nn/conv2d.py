@@ -39,7 +39,6 @@ class Conv2D(Layer):
         self.norm = norm
         self.verbose = verbose
         
-        self.filters_shape = ()
         self.exc_weights = None
         self.inh_weights = None
         self.thresholds = None
@@ -50,12 +49,12 @@ class Conv2D(Layer):
     def _build(self):
         step_count, channels, width, height = self.prev.shape
 
-        self.filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
-        self.exc_weights = self.rng.uniform(size=self.filters_shape)
+        filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
+        self.exc_weights = self.rng.uniform(size=filters_shape)
         if self.norm:
             self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
             self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
-            self.exc_weights = self.exc_weights.reshape(self.filters_shape)
+            self.exc_weights = self.exc_weights.reshape(filters_shape)
 
         self.inh_weights = np.zeros((self.filter_count, self.filter_count))
         self.thresholds = np.full(self.filter_count, fill_value=5.0)
@@ -118,9 +117,7 @@ class Conv2D(Layer):
         n = self.spikes.sum(axis=0)
         self.exc_weights += self.lr_exc * np.outer(n, patch - n @ self.exc_weights)
         if self.norm:
-            self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
             self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
-            self.exc_weights = self.exc_weights.reshape(self.filters_shape)
     
         self.inh_weights += self.lr_inh * (np.outer(n, n) - self.avg_spike_rate ** 2)
         self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
