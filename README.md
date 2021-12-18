@@ -18,7 +18,7 @@ We assume individual modifications to the base model, so we run tests on the bas
 
 Pick a test and start training; once it is done, upload the model file to `models/` with an appropriate name. Evaluate on the entire test set, and put the accuracy in the table below. Edit this file and surround the test you are currently working on with `~~` (strikethrough) symbols, that way we can track progress.
 
-- **Convolutional kernel size**: 3, ~~5~~, 7
+- **Convolutional kernel size**: ~~3~~, ~~5~~, 7
 - **Memory constant (conv/stdp layer)**: ~~0.0~~, ~~0.25~~, ~~0.5~~, ~~0.75~~ , ~~1.0~~
 - **Euclidean norm convolutional weight normalization**: ~~True~~, ~~False~~
 - **Convolutional learning rule**: ~~Oja~~, BCM [^1]
@@ -31,6 +31,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | Parameters       | Accuracy |
 |:-----------------|---------:|
 | baseline         |   0.9250 |
+| filter_size=3    |   ------ |
 | neuron_count=64  |   0.9193 |
 | neuron_count=256 |   0.9379 |
 | memory=0.25      |   0.9529 |
