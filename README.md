@@ -36,7 +36,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | memory=0.25      |   0.9529 |
 | memory=0.5       |   0.9112 |
 | memory=0.75      |   0.9578 |
-| memory=1.0       |   ------ |
+| memory=1.0       |   0.9532 |
 | Euclid norm=True |   0.9349 |
 
 [^1]: oja is implemented; Niels is working on BCM
