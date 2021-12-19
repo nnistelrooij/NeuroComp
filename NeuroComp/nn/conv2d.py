@@ -22,6 +22,7 @@ class Conv2D(Layer):
         lr_thres: float = 0.02,
         avg_spike_rate: float = 0.05,
         memory: float = 1.0,
+        rule: str = 'oja',
         norm: bool = True,
         verbose: bool = False,
     ):
@@ -36,6 +37,7 @@ class Conv2D(Layer):
         self.lr_thres = lr_thres
         self.avg_spike_rate = avg_spike_rate
         self.memory = memory
+        self.rule = rule
         self.norm = norm
         self.verbose = verbose
         
@@ -83,7 +85,10 @@ class Conv2D(Layer):
                 patches = patches.reshape(-1, np.prod(patches.shape[-3:]))
                 patches = patches[self.rng.permutation(patches.shape[0])]
                 for patch in patches:
-                    self._fit_patch(patch)
+                    if self.rule == 'oja':
+                        self._fit_patch_oja(patch)
+                    else:
+                        self._fit_patch_bcm(patch)
                     t.update()
 
         # reshape flat kernel weights back to 3 dimensions
@@ -100,7 +105,7 @@ class Conv2D(Layer):
         self.exc_weights /= self.exc_weights.max()
         self.exc_weights = 2 * self.exc_weights - 1
 
-    def _fit_patch(self, patch: NDArray[np.float64]):
+    def _fit_patch_oja(self, patch: NDArray[np.float64]):
         self.potential[...] = 0
 
         # compute spikes of sparse coding layer
@@ -123,6 +128,9 @@ class Conv2D(Layer):
         self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
 
         self.thresholds += self.lr_thres * (n - self.avg_spike_rate)
+
+    def _fit_patch_bcm(self, patch: NDArray[np.float64]):
+        raise NotImplementedError()
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
         num_batches, batch_size = inputs.shape[:2]
@@ -159,6 +167,7 @@ class Conv2D(Layer):
         arch.append(self.lr_thres)
         arch.append(self.avg_spike_rate)
         arch.append(self.memory)
+        arch.append(self.rule)
         arch.append(self.norm)
         arch.append(self.exc_weights)
         arch.append(self.inh_weights)
@@ -177,6 +186,7 @@ class Conv2D(Layer):
         self.inh_weights = arch.pop()
         self.exc_weights = arch.pop()
         self.norm = bool(arch.pop())
+        self.rule = str(arch.pop())
         self.memory = float(arch.pop())
         self.avg_spike_rate = float(arch.pop())
         self.lr_thres = float(arch.pop())
