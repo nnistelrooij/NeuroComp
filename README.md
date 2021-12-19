@@ -31,7 +31,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | Parameters       | Accuracy |
 |:-----------------|---------:|
 | baseline         |   0.9250 |
-| filter_size=3    |   ------ |
+| filter_size=3    |   0.9360 |
 | neuron_count=64  |   0.9193 |
 | neuron_count=256 |   0.9379 |
 | memory=0.25      |   0.9529 |
