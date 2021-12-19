@@ -23,7 +23,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 - **Euclidean norm convolutional weight normalization**: ~~True~~, ~~False~~
 - **Convolutional learning rule**: ~~Oja~~, BCM [^1]
 - **STDP neuron count**: ~~64~~, ~~128~~, ~~256~~
-- **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, 5, or 7.
+- **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or 7.
 - **Convolutional weight initialization**: ~~uniform~~, gaussian, glorot, gabor [^2]
 
 ## Put your accuracies down here
@@ -40,6 +40,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | memory=0.75      |   0.9578 |
 | memory=1.0       |   0.9532 |
 | conv2_size=3     |   0.8619 |
+| conv2_size=5     |   ------ |
 | Euclid norm=True |   0.9349 |
 
 [^1]: oja is implemented; Niels is working on BCM
