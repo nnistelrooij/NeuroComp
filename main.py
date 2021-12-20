@@ -13,7 +13,7 @@ rng = np.random.default_rng(1234)
 model = Sequence(
     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
     Stochastic(rng=rng),
-    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, norm=False, memory=0.0),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, euclid_norm=False, memory=0.0, rule='oja'),
     Pool2D(verbose=False),
     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
     SVM(kernel='poly', degree=2),

@@ -17,13 +17,16 @@ class Conv2D(Layer):
         filter_count: int,
         filter_size : int,
         rng: np.random.Generator,
+        lr_bcm: float = 1e-7,
         lr_exc: float = 0.0001,
         lr_inh: float = 0.01,
         lr_thres: float = 0.02,
         avg_spike_rate: float = 0.05,
+        cum_discount: float = 1.0,
         memory: float = 1.0,
         rule: str = 'oja',
-        norm: bool = True,
+        euclid_norm: bool = False,
+        uniform_norm: bool = True,
         verbose: bool = False,
     ):
         super().__init__(Data.SCALARS)
@@ -32,28 +35,38 @@ class Conv2D(Layer):
         self.filter_size = filter_size
         self.rng = rng
 
-        self.lr_exc = lr_exc
-        self.lr_inh = lr_inh
+        self.rule = rule
         self.lr_thres = lr_thres
         self.avg_spike_rate = avg_spike_rate
         self.memory = memory
-        self.rule = rule
-        self.norm = norm
+        self.euclid_norm = euclid_norm
+        self.uniform_norm = uniform_norm
         self.verbose = verbose
+
+        # Oja parameters
+        self.lr_exc = lr_exc
+        self.lr_inh = lr_inh
+
+        # BCM parameters
+        self.lr_bcm = lr_bcm
+        self.cum_discount = cum_discount
         
         self.exc_weights = None
         self.inh_weights = None
         self.thresholds = None
 
         self.potential = None
+        self.cum_potential = None
         self.spikes = None
 
     def _build(self):
         step_count, channels, width, height = self.prev.shape
 
+        self.lr_bcm /= step_count
+
         filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
         self.exc_weights = self.rng.uniform(size=filters_shape)
-        if self.norm:
+        if self.euclid_norm:
             self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
             self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
             self.exc_weights = self.exc_weights.reshape(filters_shape)
@@ -62,6 +75,7 @@ class Conv2D(Layer):
         self.thresholds = np.full(self.filter_count, fill_value=5.0)
 
         self.potential = np.empty(self.filter_count)
+        self.cum_potential = np.zeros_like(self.potential)
         self.spikes = np.zeros((self.step_count + 1, self.filter_count), dtype=bool)
 
         out_width, out_height = out_size(width, height, kernel_size=self.filter_size)
@@ -89,6 +103,10 @@ class Conv2D(Layer):
                         self._fit_patch_oja(patch)
                     else:
                         self._fit_patch_bcm(patch)
+
+                    if self.euclid_norm:
+                        self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
+
                     t.update()
 
         # reshape flat kernel weights back to 3 dimensions
@@ -101,9 +119,10 @@ class Conv2D(Layer):
             plot_conv_filters(self.exc_weights)
 
         # normalize filter weights to [-1, 1]
-        self.exc_weights = self.exc_weights - self.exc_weights.min()
-        self.exc_weights /= self.exc_weights.max()
-        self.exc_weights = 2 * self.exc_weights - 1
+        if self.uniform_norm:
+            self.exc_weights = self.exc_weights - self.exc_weights.min()
+            self.exc_weights /= self.exc_weights.max()
+            self.exc_weights = 2 * self.exc_weights - 1
 
     def _fit_patch_oja(self, patch: NDArray[np.float64]):
         self.potential[...] = 0
@@ -121,8 +140,6 @@ class Conv2D(Layer):
         # update parameters of sparse coding layer
         n = self.spikes.sum(axis=0)
         self.exc_weights += self.lr_exc * np.outer(n, patch - n @ self.exc_weights)
-        if self.norm:
-            self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
     
         self.inh_weights += self.lr_inh * (np.outer(n, n) - self.avg_spike_rate ** 2)
         self.inh_weights[np.diag_indices_from(self.inh_weights)] = 0
@@ -130,7 +147,29 @@ class Conv2D(Layer):
         self.thresholds += self.lr_thres * (n - self.avg_spike_rate)
 
     def _fit_patch_bcm(self, patch: NDArray[np.float64]):
-        raise NotImplementedError()
+        self.potential[...] = 0
+        self.cum_potential[...] = 0
+
+        # compute spikes of bcm layer
+        for step in range(1, self.step_count + 1):
+            self.potential *= self.memory
+            self.potential += self.exc_weights @ patch
+            
+            self.cum_potential /= np.exp(1 / self.cum_discount)
+            self.cum_potential += (1 / self.cum_discount) * self.potential ** 2
+
+            # update synaptic weights of bcm layer
+            self.exc_weights += self.lr_bcm * np.outer(
+                self.potential * (self.potential - self.cum_potential),
+                patch,
+            )
+
+            self.spikes[step] = self.potential >= self.thresholds
+            self.potential *= ~self.spikes[step]
+        
+        # update thresholds of bcm layer
+        n = self.spikes.sum(axis=0)
+        self.thresholds += self.lr_thres * (n - self.avg_spike_rate)
 
     def _predict(self, inputs: NDArray[bool]) -> NDArray[Any]:
         num_batches, batch_size = inputs.shape[:2]
@@ -162,17 +201,21 @@ class Conv2D(Layer):
         arch.append(self.step_count)
         arch.append(self.filter_count)
         arch.append(self.filter_size)
+        arch.append(self.lr_bcm)
         arch.append(self.lr_exc)
         arch.append(self.lr_inh)
         arch.append(self.lr_thres)
         arch.append(self.avg_spike_rate)
+        arch.append(self.cum_discount)
         arch.append(self.memory)
         arch.append(self.rule)
-        arch.append(self.norm)
+        arch.append(self.euclid_norm)
+        arch.append(self.uniform_norm)
         arch.append(self.exc_weights)
         arch.append(self.inh_weights)
         arch.append(self.thresholds)
-        arch.append(self.potential)
+        arch.append(self.potential)   
+        arch.append(self.cum_potential)
         arch.append(self.spikes)
 
         self.prev._save(arch)
@@ -181,17 +224,21 @@ class Conv2D(Layer):
         self.prev._load(arch, step_count)
 
         self.spikes = arch.pop()
+        self.cum_potential = arch.pop()
         self.potential = arch.pop()
         self.thresholds = arch.pop()
         self.inh_weights = arch.pop()
         self.exc_weights = arch.pop()
-        self.norm = bool(arch.pop())
+        self.uniform_norm = bool(arch.pop())
+        self.euclid_norm = bool(arch.pop())
         self.rule = str(arch.pop())
         self.memory = float(arch.pop())
+        self.cum_discount = float(arch.pop())
         self.avg_spike_rate = float(arch.pop())
         self.lr_thres = float(arch.pop())
         self.lr_inh = float(arch.pop())
         self.lr_exc = float(arch.pop())
+        self.lr_bcm = float(arch.pop())
         self.filter_size = int(arch.pop())
         self.filter_count = int(arch.pop())
         self.step_count = int(arch.pop())
