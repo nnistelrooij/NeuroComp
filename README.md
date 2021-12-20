@@ -41,7 +41,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 | memory=1.0       |   0.9532 |
 | conv2_size=3     |   0.8619 |
 | conv2_size=5     |   0.8936 |
-| conv2_size=7     |   ------ |
+| conv2_size=7     |   0.6849 |
 | Euclid norm=True |   0.9349 |
 
 [^1]: oja is implemented; Niels is working on BCM
