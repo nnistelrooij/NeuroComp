@@ -14,7 +14,7 @@ class SVM(Layer):
     def __init__(self, **kwargs):
         super().__init__(Data.SCALARS)
 
-        self.svm = SVC(**kwargs)
+        self.svm = SVC(**kwargs, random_state=1234)
 
     def _build(self):
         return ()
