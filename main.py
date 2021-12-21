@@ -8,12 +8,11 @@ from NeuroComp.nn import Deterministic, Sequence, Stochastic
 from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
 from NeuroComp.viz import plot_conv_filters
 
-
 rng = np.random.default_rng(1234)
 model = Sequence(
     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
     Stochastic(rng=rng),
-    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, norm=False, memory=0.0),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, euclid_norm=False, memory=0.0, rule='oja'),
     Pool2D(verbose=False),
     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
     SVM(kernel='poly', degree=2),
@@ -24,7 +23,7 @@ model = Sequence(
 split = StratifiedShuffleSplit(n_splits=1, train_size=30_000, random_state=1234)
 train_idxs, _ = next(split.split(train_images, train_labels))
 model.fit(train_images[train_idxs], train_labels[train_idxs])
-file_name = 'mnist-30000x20x200xstoch_conv-32x5xFx0.0_pool_stdp-128x0.0_svm.npz'
+file_name = 'mnist-30000x20x200xstoch_conv-32x5xFxTx0.0_pool_stdp-128x0.0_svm.npz'
 model.save('models/' + file_name)
 
 model.load('models/' + file_name)
