@@ -7,6 +7,7 @@ from NeuroComp.data import ImageInput
 from NeuroComp.nn import Deterministic, Sequence, Stochastic
 from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
 from NeuroComp.viz import plot_conv_filters
+from NeuroComp.base import ConvInit
 
 rng = np.random.default_rng(1234)
 model = Sequence(
