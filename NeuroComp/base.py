@@ -11,6 +11,13 @@ class Data(Enum):
     NEXT = 3
 
 
+class ConvInit(Enum):
+    UNIFORM = 1
+    NORMAL = 2
+    GLOROT_UNIFORM = 3
+    GLOROT_NORMAL = 3
+
+
 class Base:
 
     def __init__(self, shape: Optional[Tuple[int]], step_count: Optional[int]):
@@ -21,7 +28,7 @@ class Base:
 
     def _save(self, arch: List[Any]):
         raise NotImplementedError()
-  
+
     def _load(self, arch: List[NDArray[Any]], step_count: int):
         # IN
         # arch: list containing state from other layers in the same model.
@@ -35,7 +42,7 @@ class Base:
         arch = {str(i): v for i, v in enumerate(arch)}
         with open(file_path, 'wb') as file:
             np.savez_compressed(file, **arch)
-  
+
     def load(self, file_path: str, step_count: int = 0):
         if step_count < 0:
             raise ValueError('Step count cannot be negative.')

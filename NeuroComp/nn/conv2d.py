@@ -3,15 +3,17 @@ from typing import Any, List, Optional
 import numpy as np
 from numpy.typing import NDArray
 from tqdm import tqdm, trange
+from math import sqrt
+from skimage.filters import gabor_kernel
 
-from ..base import Data
+from ..base import Data, ConvInit
 from ..utils.patches import conv2d_patches, out_size
 from ..viz import plot_conv_filters, plot_activations
 from .layer import Layer
 
 
 class Conv2D(Layer):
-    
+
     def __init__(
         self,
         filter_count: int,
@@ -28,9 +30,10 @@ class Conv2D(Layer):
         euclid_norm: bool = False,
         uniform_norm: bool = True,
         verbose: bool = False,
+        conv_init=ConvInit.UNIFORM,
     ):
         super().__init__(Data.SCALARS)
-        
+
         self.filter_count = filter_count
         self.filter_size = filter_size
         self.rng = rng
@@ -42,12 +45,12 @@ class Conv2D(Layer):
         self.euclid_norm = euclid_norm
         self.uniform_norm = uniform_norm
         self.verbose = verbose
+        self.conv_init = conv_init
 
         # Oja parameters
         self.lr_exc = lr_exc
         self.lr_inh = lr_inh
 
-        # BCM parameters
         self.lr_bcm = lr_bcm
         self.cum_discount = cum_discount
         
@@ -65,7 +68,20 @@ class Conv2D(Layer):
         self.lr_bcm /= step_count
 
         filters_shape = (self.filter_count, channels, self.filter_size, self.filter_size)
-        self.exc_weights = self.rng.uniform(size=filters_shape)
+
+        if self.conv_init is ConvInit.UNIFORM:
+            self.exc_weights = self.rng.uniform(size=filters_shape)
+        elif self.conv_init is ConvInit.NORMAL:
+            self.exc_weights = self.rng.normal(0.0, 1.0, size=filters_shape)
+        elif self.conv_init is ConvInit.GLOROT_UNIFORM:
+            limit = sqrt(6 / (np.prod(self.prev.shape) + self.filter_count))
+            self.exc_weights = self.rng.uniform(-limit, limit, size=filters_shape)
+        elif self.conv_init is ConvInit.GLOROT_NORMAL:
+            stddev = sqrt(2 / (np.prod(self.prev.shape) + self.filter_count))
+            self.exc_weights = self.rng.normal(0, stddev, size=filters_shape)
+        else:
+            raise Exception(f"Unknown conv2d initializer: {self.conv_init}")
+
         if self.euclid_norm:
             self.exc_weights = self.exc_weights.reshape(self.filter_count, -1)
             self.exc_weights /= np.linalg.norm(self.exc_weights, axis=-1, keepdims=True)
@@ -80,7 +96,7 @@ class Conv2D(Layer):
 
         out_width, out_height = out_size(width, height, kernel_size=self.filter_size)
         return step_count, self.filter_count, out_width, out_height
-  
+
     def _fit(self, inputs: NDArray[np.float64], labels: Optional[NDArray[np.int64]]):
         # normalize input images to z-scores
         inputs = inputs - inputs.mean()
@@ -136,7 +152,7 @@ class Conv2D(Layer):
 
             self.spikes[step] = self.potential >= self.thresholds
             self.potential *= ~self.spikes[step]
-    
+
         # update parameters of sparse coding layer
         n = self.spikes.sum(axis=0)
         self.exc_weights += self.lr_exc * np.outer(n, patch - n @ self.exc_weights)
@@ -175,10 +191,10 @@ class Conv2D(Layer):
         num_batches, batch_size = inputs.shape[:2]
         potential = np.empty((batch_size,) + self.shape[1:])
         spikes = np.empty((num_batches, batch_size) + self.shape, dtype=bool)
-        
+
         for i, batch in tqdm(enumerate(inputs), total=num_batches, desc='Predicting conv'):
             potential[...] = 0
-            
+
             patches = conv2d_patches(batch, self.filter_size)
             patch_potentials = np.einsum('kcwh,bsxycwh->bskxy', self.exc_weights, patches)
             for step in range(self.step_count):
@@ -186,16 +202,16 @@ class Conv2D(Layer):
                 potential += patch_potentials[:, step]
                 spikes[i, :, step] = potential >= 1
                 potential *= ~spikes[i, :, step]
-        
+
         if self.is_fitting:
             if self.verbose:
                 plot_activations(spikes[0, 0])
-        
+
             if self.fit_out == Data.SCALARS:
                 return spikes.mean(axis=2, keepdims=True)
 
         return spikes
-  
+
     def _save(self, arch: List[Any]):
         arch.append(self.shape)
         arch.append(self.step_count)
@@ -217,12 +233,14 @@ class Conv2D(Layer):
         arch.append(self.potential)   
         arch.append(self.cum_potential)
         arch.append(self.spikes)
+        arch.append(self.conv_init)
 
         self.prev._save(arch)
-  
+
     def _load(self, arch: List[NDArray[Any]], step_count: int):
         self.prev._load(arch, step_count)
 
+        self.conv_init = arch.pop()
         self.spikes = arch.pop()
         self.cum_potential = arch.pop()
         self.potential = arch.pop()
