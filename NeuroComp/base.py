@@ -15,7 +15,7 @@ class ConvInit(Enum):
     UNIFORM = 1
     NORMAL = 2
     GLOROT_UNIFORM = 3
-    GLOROT_NORMAL = 3
+    GLOROT_NORMAL = 4
 
 
 class Base:
