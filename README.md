@@ -28,22 +28,25 @@ Pick a test and start training; once it is done, upload the model file to `model
 
 ## Put your accuracies down here
 
-| Parameters       | Accuracy |
-|:-----------------|---------:|
-| baseline         |   0.9250 |
-| filter_size=3    |   0.9360 |
-| filter_size=7    |   0.9303 |
-| neuron_count=64  |   0.9193 |
-| neuron_count=256 |   0.9379 |
-| memory=0.25      |   0.9529 |
-| memory=0.5       |   0.9112 |
-| memory=0.75      |   0.9578 |
-| memory=1.0       |   0.9532 |
-| conv2_size=3     |   0.8619 |
-| conv2_size=5     |   0.8936 |
-| conv2_size=7     |   0.6849 |
-| Euclid norm=True |   0.9349 |
-| BCM              |   0.8640 |
+| Parameters            | Accuracy |
+|:----------------------|---------:|
+| baseline              |   0.9250 |
+| filter_size=3         |   0.9360 |
+| filter_size=7         |   0.9303 |
+| neuron_count=64       |   0.9193 |
+| neuron_count=256      |   0.9379 |
+| memory= 0             |   0.9226 |
+| memory=0.25           |   0.9529 |
+| memory=0.5            |   0.9112 |
+| memory=0.75           |   0.9578 |
+| memory=1.0            |   0.9532 |
+| memory= 0 & uni=false |   0.4287 |
+| conv2_size=3          |   0.8619 |
+| conv2_size=5          |   0.8936 |
+| conv2_size=7          |   0.6849 |
+| Euclid norm=True      |   0.9349 |
+| BCM                   |   0.8640 |
+
 
 [^1]: oja and bcm are implemented; Niels is working on stdp
 [^2]: uniform is implemented; Jasper is working on the other initialization procedures
