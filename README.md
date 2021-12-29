@@ -24,7 +24,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 - **Convolutional learning rule**: ~~Oja~~, ~~BCM~~, STDP [^1]
 - **STDP neuron count**: ~~64~~, ~~128~~, ~~256~~
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or ~~7~~.
-- **Convolutional weight initialization**: ~~uniform~~, gaussian, glorot, gabor [^2]
+- **Convolutional weight initialization**: ~~uniform~~, ~gaussian~, ~glorot~, gabor [^2]
 
 ## Put your accuracies down here
 
@@ -41,6 +41,8 @@ Pick a test and start training; once it is done, upload the model file to `model
 | memory=0.75           |   0.9578 |
 | memory=1.0            |   0.9532 |
 | memory= 0 & uni=false |   0.4287 |
+| Gaussian              |   0.925  |
+| Glorot                |   0.935  |
 | conv2_size=3          |   0.8619 |
 | conv2_size=5          |   0.8936 |
 | conv2_size=7          |   0.6849 |
