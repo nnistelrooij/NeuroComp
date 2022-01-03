@@ -45,8 +45,8 @@ class Supervised(Layer):
             ensemble_config.intercepts = nengo.dists.Choice([0])
 
             # train network with zero synaptic delays
-            model.config[nengo.Connection].synapse = None 
-            
+            model.config[nengo.Connection].synapse = None
+
             inp = nengo.Node([0] * self.prev.shape[-1])
 
             if weights is None:
@@ -81,7 +81,7 @@ class Supervised(Layer):
                 shape_in=(self.prev.shape[-1],), pass_time=False,
             )
             nengo.Connection(x1, x2)
-            
+
             out = nengo.Node(size_in=2)
             nengo.Connection(x2, out)
 
@@ -98,11 +98,11 @@ class Supervised(Layer):
             self.model.probes[0]: np.tile(labels.reshape(-1, 1, 1), reps=(1, self.step_count, 1)),
         }
 
-        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001)           
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001)
         objective = {
             self.model.probes[0]: tf.losses.SparseCategoricalCrossentropy(from_logits=True)
         }
-        
+
         with nengo_dl.Simulator(self.model, minibatch_size=self.batch_size, seed=1234) as sim:
             sim.compile(optimizer=optimizer, loss=objective)
             sim.fit(x, y, n_steps=self.step_count, epochs=10)
@@ -112,7 +112,7 @@ class Supervised(Layer):
         for conn in self.model.all_connections:
             conn.synapse = 0.005
 
-        batch_size = inputs.shape[1]        
+        batch_size = inputs.shape[1]
         preds = np.empty(inputs.shape[:2], dtype=np.int64)
         with nengo_dl.Simulator(self.model, minibatch_size=batch_size, seed=1234) as sim:
             for i, batch in enumerate(inputs):
@@ -123,9 +123,9 @@ class Supervised(Layer):
 
                 out = sim.data[self.model.probes[1]][:, -1]
                 preds[i] = out.argmax(axis=-1)
-        
+
         return preds.flatten()
-  
+
     def _save(self, arch: List[Any]):
         arch.append(self.step_count)
         arch.append(self.class_count)
@@ -138,7 +138,7 @@ class Supervised(Layer):
         arch.append(self.dense2.weights[1].numpy())
 
         self.prev._save(arch)
-  
+
     def _load(self, arch: List[NDArray[Any]], step_count: int):
         self.prev._load(arch, step_count)
 

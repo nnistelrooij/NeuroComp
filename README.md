@@ -20,11 +20,11 @@ Pick a test and start training; once it is done, upload the model file to `model
 
 - **Convolutional kernel size**: ~~3~~, ~~5~~, ~~7~~
 - **Memory constant (conv/stdp layer)**: ~~0.0~~, ~~0.25~~, ~~0.5~~, ~~0.75~~ , ~~1.0~~
-- **Euclidean norm convolutional weight normalization**: ~~True~~, ~~False~~
-- **Convolutional learning rule**: ~~Oja~~, ~~BCM~~, STDP [^1]
+- **uniform_norm**: ~~True~~, ~~False~~
+- **Convolutional learning rule**: ~~Std~~, ~~Oja~~, ~~BCM~~, STDP
 - **STDP neuron count**: ~~64~~, ~~128~~, ~~256~~
-- **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or ~~7~~.
-- **Convolutional weight initialization**: ~~uniform~~, ~gaussian~, ~glorot~, gabor [^2]
+- **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or 7.
+- **Convolutional weight initialization**: ~~uniform~~, ~~gaussian~~, ~~glorot~~, ~~gabor_uniform~~, ~~gabor_normal~~
 
 ## Put your accuracies down here
 
@@ -48,7 +48,3 @@ Pick a test and start training; once it is done, upload the model file to `model
 | conv2_size=7          |   0.6849 |
 | Euclid norm=True      |   0.9349 |
 | BCM                   |   0.8640 |
-
-
-[^1]: oja and bcm are implemented; Niels is working on stdp
-[^2]: uniform is implemented; Jasper is working on the other initialization procedures
