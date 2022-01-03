@@ -243,7 +243,7 @@ model = Sequence(
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
-model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 print("=== conv_conv-32,5 ===")
 rng = np.random.default_rng(1234)
@@ -273,7 +273,7 @@ model = Sequence(
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
-model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 print("=== conv_init=norm ===")
 rng = np.random.default_rng(1234)
