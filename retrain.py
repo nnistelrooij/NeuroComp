@@ -46,7 +46,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== filter_size=3 ===")
 # rng = np.random.default_rng(1234)
@@ -59,7 +59,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== filter_size=7 ===")
 # rng = np.random.default_rng(1234)
@@ -72,7 +72,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== filter_count=16 ===")
 # rng = np.random.default_rng(1234)
@@ -85,7 +85,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-16,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-16,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== filter_count=64 ===")
 # rng = np.random.default_rng(1234)
@@ -98,7 +98,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== memory=0.25 ===")
 # rng = np.random.default_rng(1234)
@@ -111,7 +111,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.25,uni_pool_stdp-128,0.25.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.25,uni_pool_stdp-128,0.25.npz")
 
 # print("=== memory=0.5 ===")
 # rng = np.random.default_rng(1234)
@@ -124,7 +124,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.5,uni_pool_stdp-128,0.5.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.5,uni_pool_stdp-128,0.5.npz")
 
 # print("=== memory=0.75 ===")
 # rng = np.random.default_rng(1234)
@@ -137,7 +137,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.75,uni_pool_stdp-128,0.75.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.75,uni_pool_stdp-128,0.75.npz")
 
 # print("=== memory=1.0 ===")
 # rng = np.random.default_rng(1234)
@@ -150,7 +150,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,1.0,uni_pool_stdp-128,1.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,1.0,uni_pool_stdp-128,1.0.npz")
 
 # print("=== norm=false ===")
 # rng = np.random.default_rng(1234)
@@ -163,7 +163,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,F,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,F,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== lr=oja ===")
 # rng = np.random.default_rng(1234)
@@ -176,7 +176,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,oja,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,oja,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== lr=bcm ===")
 # rng = np.random.default_rng(1234)
@@ -189,7 +189,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,bcm,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,bcm,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== stdp_count=64 ===")
 # rng = np.random.default_rng(1234)
@@ -202,7 +202,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-64,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-64,0.0.npz")
 
 # print("=== stdp_count=256 ===")
 # rng = np.random.default_rng(1234)
@@ -215,7 +215,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-256,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-256,0.0.npz")
 
 # print("=== conv_conv-32,3 ===")
 # rng = np.random.default_rng(1234)
@@ -230,7 +230,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== conv_conv-32,5 ===")
 # rng = np.random.default_rng(1234)
@@ -245,7 +245,7 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 print("=== conv_conv-32,7 ===")
 rng = np.random.default_rng(1234)
@@ -260,7 +260,7 @@ model = Sequence(
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
-model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
 # print("=== conv_init=norm ===")
 # rng = np.random.default_rng(1234)
@@ -273,7 +273,7 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,norm_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,norm_pool_stdp-128,0.0.npz")
 
 # print("=== conv_init=gluni ===")
 # rng = np.random.default_rng(1234)
@@ -286,7 +286,7 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,gluni_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,gluni_pool_stdp-128,0.0.npz")
 
 # print("=== conv_init=glnorm ===")
 # rng = np.random.default_rng(1234)
@@ -299,7 +299,7 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,glnorm_pool_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,glnorm_pool_stdp-128,0.0.npz")
 
 # print("=== no conv/pool ===")
 # rng = np.random.default_rng(1234)
@@ -310,7 +310,7 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_stdp-128,0.0.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_stdp-128,0.0.npz")
 
 # print("=== no stdp ===")
 # rng = np.random.default_rng(1234)
@@ -322,7 +322,7 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool.npz")
 
 # print("=== no conv/pool/stdp ===")
 # rng = np.random.default_rng(1234)
@@ -332,4 +332,4 @@ model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.
 #     SVM(kernel='poly', degree=2),
 # )
 # model.fit(train_images, train_labels)
-# model.save(f"train_models/{dataset}-{TRAIN_SIZE},20,200_stoch.npz")
+# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch.npz")
