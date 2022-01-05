@@ -42,7 +42,7 @@ model = Sequence(
     Stochastic(rng=rng),
     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
     Pool2D(verbose=False),
-    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.368),
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
