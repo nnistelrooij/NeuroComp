@@ -48,6 +48,36 @@ model = Sequence(
 model.fit(train_images, train_labels)
 model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
 
+print("=== best extensions + 0.75 memory ===")
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(
+        filter_count=64, filter_size=5, rule='oja', conv_init=ConvInit.NORMAL,
+        rng=rng, verbose=False, euclid_norm=True, memory=0.75,
+    ),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.75),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.75,norm_pool_stdp-128,0.75.npz")
+
+print("=== best extensions + 0.905 memory ===")
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(
+        filter_count=64, filter_size=5, rule='oja', conv_init=ConvInit.NORMAL,
+        rng=rng, verbose=False, euclid_norm=True, memory=0.905,
+    ),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.905,norm_pool_stdp-128,0.905.npz")
+
 print("=== filter_size=3 ===")
 rng = np.random.default_rng(1234)
 model = Sequence(
