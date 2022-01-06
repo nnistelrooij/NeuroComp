@@ -40,13 +40,13 @@ rng = np.random.default_rng(1234)
 model = Sequence(
     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
     Stochastic(rng=rng),
-    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.368, conv_init=ConvInit.UNIFORM),
+    Conv2D(filter_count=64, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.905, conv_init=ConvInit.NORMAL),
     Pool2D(verbose=False),
-    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.368),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
-model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.368-2,uni_pool_stdp-128,0.0.npz")
+model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.905,uni_pool_stdp-128,0.0.npz")
 
 # print("=== filter_size=3 ===")
 # rng = np.random.default_rng(1234)
