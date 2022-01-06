@@ -55,13 +55,15 @@ Pick a test and start training; once it is done, upload the model file to `model
 | Parameters            | Accuracy |
 |:----------------------|---------:|
 | baseline | 0.9235 |
-| filter_size=3 | 0.917 |
+| filter_size=3 | 0.9170 |
 | filter_size=7 | 0.9188 |
 | filter_count=16 | 0.9215 |
 | filter_count=64 | 0.9304 |
 | memory=0.25 | 0.9459 |
+| memory=0.368 | 0.9521 |
 | memory=0.5 | 0.8952 |
 | memory=0.75 | 0.9606 |
+| memory=0.905 | 0.9570 |
 | memory=1.0 | 0.9562 |
 | norm=false | 0.4445 |
 | lr=oja | 0.9407 |
