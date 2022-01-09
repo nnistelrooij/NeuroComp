@@ -175,9 +175,8 @@ class Conv2D(Layer):
 
         # normalize filter weights to [-1, 1]
         if self.uniform_norm:
-            self.exc_weights = self.exc_weights - self.exc_weights.min()
-            self.exc_weights /= self.exc_weights.max()
-            self.exc_weights = 2 * self.exc_weights - 1
+            self.exc_weights = self.exc_weights - self.exc_weights.mean()
+            self.exc_weights /= self.exc_weights.ptp() / 2
 
     def _fit_patch_oja(self, patch: NDArray[np.float64]):
         self.potential[...] = 0
