@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import numpy as np
 
 
@@ -9,16 +10,21 @@ def plot_conv_filters(filter_weights):
     if channels != 1 and channels != 3:
         return
 
-    # make M, N, 3 filters between 0 and 1
+    # make M, N, C filters between -1 and 1
     filter_weights = filter_weights.transpose(0, 2, 3, 1)
-    filter_weights -= filter_weights.min()
+    filter_weights = filter_weights - filter_weights.min()
     filter_weights /= filter_weights.max()
-    filter_weights = np.tile(filter_weights, (1, 1, 1, 4 - channels))
+    filter_weights = filter_weights * 2 - 1
 
     fig, axs = plt.subplots(num_filters // 4, 4, figsize=(8, 8))
     for i, ax in zip(range(num_filters), axs.flatten()):
-        ax.imshow(filter_weights[i])
-        ax.axis('off')
+        ax.imshow(filter_weights[i].squeeze(), norm=Normalize(-1, 1), cmap=plt.get_cmap('gray'))
+        ax.grid(False)
+        for tick in ax.xaxis.get_major_ticks() + ax.yaxis.get_major_ticks():
+            tick.tick1line.set_visible(False)
+            tick.tick2line.set_visible(False)
+            tick.label1.set_visible(False)
+            tick.label2.set_visible(False)
 
     fig.suptitle('Kernel visualizations')
     plt.show()
@@ -29,8 +35,13 @@ def plot_activations(pixel_spikes):
 
     fig, axs = plt.subplots(num_filters // 4, 4, figsize=(8, 8))
     for i, ax in zip(range(num_filters), axs.flatten()):
-        ax.imshow(pixel_spikes.mean(0)[i], interpolation='bicubic')
-        ax.axis('off')
+        ax.imshow(pixel_spikes.mean(0)[i], interpolation='bicubic', norm=Normalize(0, 1), cmap=plt.get_cmap('gray'))        
+        ax.grid(False)
+        for tick in ax.xaxis.get_major_ticks() + ax.yaxis.get_major_ticks():
+            tick.tick1line.set_visible(False)
+            tick.tick2line.set_visible(False)
+            tick.label1.set_visible(False)
+            tick.label2.set_visible(False)
         
     fig.suptitle('Activations')
     plt.show()
