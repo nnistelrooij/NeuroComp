@@ -1,12 +1,9 @@
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import StratifiedShuffleSplit
 
 from NeuroComp.data import ImageInput
 from NeuroComp.nn import Deterministic, Sequence, Stochastic
 from NeuroComp.nn import Conv2D, Pool2D, STDP, Supervised, SVM
-from NeuroComp.viz import plot_conv_filters
 from NeuroComp.base import ConvInit
 
 TRAIN_SIZE = 30_000
@@ -35,18 +32,18 @@ val_images, val_labels = val_images[val_order], val_labels[val_order]
 # test_order = rng.permutation(test_images.shape[0])
 # test_images, test_labels = test_images[test_order], test_labels[test_order]
 
-# print("=== baseline ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== baseline ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
 print("=== best extensions + 0.75 memory ===")
 model = Sequence(
@@ -61,318 +58,344 @@ model = Sequence(
     SVM(kernel='poly', degree=2),
 )
 model.fit(train_images, train_labels)
-model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.75,norm_pool_stdp-128,0.75.npz")
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.75,norm_pool_stdp-128,0.75_svm.npz")
 
-# print("=== best extensions + 0.905 memory ===")
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(
-#         filter_count=64, filter_size=5, rule='oja', conv_init=ConvInit.NORMAL,
-#         rng=rng, verbose=False, euclid_norm=True, memory=0.905,
-#     ),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.905,norm_pool_stdp-128,0.905.npz")
+print("=== best extensions + 0.905 memory ===")
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(
+        filter_count=64, filter_size=5, rule='oja', conv_init=ConvInit.NORMAL,
+        rng=rng, verbose=False, euclid_norm=True, memory=0.905,
+    ),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,oja,0.905,norm_pool_stdp-128,0.905_svm.npz")
 
-# print("=== filter_size=3 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=3, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== filter_size=3 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=3, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== filter_size=7 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=7, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== filter_size=7 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=7, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== filter_count=16 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=16, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-16,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== filter_count=16 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=16, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-16,5,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== filter_count=64 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=64, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== filter_count=64 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=64, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-64,5,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== memory=0.25 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.25, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.25),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.25,uni_pool_stdp-128,0.25.npz")
+print("=== memory=0.25 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.25, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.25),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.25,uni_pool_stdp-128,0.25_svm.npz")
 
-# print("=== memory=0.5 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.5, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.5),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.5,uni_pool_stdp-128,0.5.npz")
+print("=== memory=0.368 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.368, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.368),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.368,uni_pool_stdp-128,0.368_svm.npz")
 
-# print("=== memory=0.75 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.75, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.75),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.75,uni_pool_stdp-128,0.75.npz")
+print("=== memory=0.5 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.5, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.5),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.5,uni_pool_stdp-128,0.5_svm.npz")
 
-# print("=== memory=1.0 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=1.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=1.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,1.0,uni_pool_stdp-128,1.0.npz")
+print("=== memory=0.75 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.75, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.75),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.75,uni_pool_stdp-128,0.75_svm.npz")
 
-# print("=== norm=false ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=False, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,F,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== memory=0.905 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.905, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.905),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.905,uni_pool_stdp-128,0.905_svm.npz")
 
-# print("=== lr=oja ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=True, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,oja,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== memory=1.0 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=1.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=1.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,1.0,uni_pool_stdp-128,1.0_svm.npz")
 
-# print("=== lr=bcm ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='bcm', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,bcm,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== norm=false ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=False, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,F,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== lr=stdp ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='stdp', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,stdp_pool_stdp-128,0.0.npz")
+print("=== lr=oja ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=True, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,oja,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== stdp_count=64 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=64, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-64,0.0.npz")
+print("=== lr=bcm ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='bcm', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,bcm,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== stdp_count=256 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=256, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-256,0.0.npz")
+print("=== lr=stdp ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='stdp', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,stdp,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== conv_conv-32,3 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     Conv2D(filter_count=32, filter_size=3, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== stdp_count=64 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=64, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-64,0.0_svm.npz")
 
-# print("=== conv_conv-32,5 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== stdp_count=256 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=256, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_stdp-256,0.0_svm.npz")
 
-# print("=== conv_conv-32,7 ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     Conv2D(filter_count=32, filter_size=7, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0.npz")
+print("=== conv_conv-32,3 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    Conv2D(filter_count=32, filter_size=3, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,3,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== conv_init=norm ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.NORMAL),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,norm_pool_stdp-128,0.0.npz")
+print("=== conv_conv-32,5 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,5,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== conv_init=gluni ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.GLOROT_UNIFORM),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,gluni_pool_stdp-128,0.0.npz")
+print("=== conv_conv-32,7 ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    Conv2D(filter_count=32, filter_size=7, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_conv-32,7,T,std,0.0,uni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== conv_init=glnorm ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.GLOROT_NORMAL),
-#     Pool2D(verbose=False),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,glnorm_pool_stdp-128,0.0.npz")
+print("=== conv_init=norm ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.NORMAL),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,norm_pool_stdp-128,0.0_svm.npz")
 
-# print("=== no conv/pool ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_stdp-128,0.0.npz")
+print("=== conv_init=gluni ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.GLOROT_UNIFORM),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,gluni_pool_stdp-128,0.0_svm.npz")
 
-# print("=== no stdp ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
-#     Pool2D(verbose=False),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool.npz")
+print("=== conv_init=glnorm ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.GLOROT_NORMAL),
+    Pool2D(verbose=False),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,glnorm_pool_stdp-128,0.0_svm.npz")
 
-# print("=== no conv/pool/stdp ===")
-# rng = np.random.default_rng(1234)
-# model = Sequence(
-#     ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
-#     Stochastic(rng=rng),
-#     SVM(kernel='poly', degree=2),
-# )
-# model.fit(train_images, train_labels)
-# model.save(f"retrain_models/{dataset}-{TRAIN_SIZE},20,200_stoch.npz")
+print("=== no conv/pool ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    STDP(neuron_count=128, rng=rng, verbose=False, memory=0.0),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_stdp-128,0.0_svm.npz")
+
+print("=== no stdp ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    Conv2D(filter_count=32, filter_size=5, rng=rng, verbose=False, uniform_norm=True, euclid_norm=False, rule='oja', memory=0.0, conv_init=ConvInit.UNIFORM),
+    Pool2D(verbose=False),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_conv-32,5,T,std,0.0,uni_pool_svm.npz")
+
+print("=== no conv/pool/stdp ===")
+rng = np.random.default_rng(1234)
+model = Sequence(
+    ImageInput(shape=(1, 28, 28), step_count=20, batch_size=200),
+    Stochastic(rng=rng),
+    SVM(kernel='poly', degree=2),
+)
+model.fit(train_images, train_labels)
+model.save(f"models/{dataset}-{TRAIN_SIZE},20,200_stoch_svm.npz")

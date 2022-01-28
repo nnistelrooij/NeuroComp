@@ -6,7 +6,7 @@ from scipy.special import softmax
 from tqdm import tqdm
 
 from ..base import Data
-from ..viz import plot_distribution
+from ..viz import plot_conv_filters, plot_distribution
 from .layer import Layer
 
 
@@ -80,6 +80,10 @@ class STDP(Layer):
         
         if self.verbose:
             plot_distribution(self.weights)
+
+            weights = self.weights.reshape(self.neuron_count, *self.prev.shape[1:])
+            weights = weights.mean(1, keepdims=True)
+            plot_conv_filters(weights[:64], title='Mean weights to 64 STDP neurons')
 
     def _fit_image(self, image: NDArray[bool]):
         self.potential[...] = 0
