@@ -7,7 +7,7 @@ Project repository for the 2021 version of the Neuromorphic Computing course.
 
 We tried to reproduce the spiking CNN of [Tavanaei and Maida [2017]](https://arxiv.org/abs/1611.03000) and extend it by changing the model architecture and hyperparameters.
 
-<img src="docs/Results.jpg" alt="drawing" width="400"/>
+<img src="docs/Results.jpg" alt="drawing" width="500"/>
 
 The accuracies reported by the 2017 paper could not be reproduced, but we did find some interesting but unintuitive results when combining promising extensions. The number of active neurons of the STDP layer seems to have a large effect on the effectiveness of the model, but it is very difficult to control.
 
@@ -35,7 +35,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 - **Convolutional kernel size**: ~~3~~, ~~5~~, ~~7~~
 - **Memory constant (conv/stdp layer)**: ~~0.0~~, ~~0.25~~, ~~0.368~~ ~~0.5~~, ~~0.75~~, ~~0.905~~, ~~1.0~~
 - **uniform_norm**: ~~True~~, ~~False~~
-- **Convolutional learning rule**: ~~Std~~, ~~Oja~~, ~~BCM~~, STDP
+- **Convolutional learning rule**: ~~Std~~, ~~Oja~~, ~~BCM~~, ~~STDP~~
 - **STDP neuron count**: ~~64~~, ~~128~~, ~~256~~
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or ~~7~~.
 - **Convolutional weight initialization**: ~~uniform~~, ~~gaussian~~, ~~glorot~~, ~~gabor_uniform~~, ~~gabor_normal~~
