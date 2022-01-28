@@ -3,11 +3,11 @@
 Project repository for the 2021 version of the Neuromorphic Computing course.
 
 
-![Alt text](docs/Baseline_Model_Diagram.jpg)
+<img src="docs/Baseline_Model_Diagram.jpg" alt="drawing" width="400"/>
 
 We tried to reproduce the spiking CNN of [Tavanaei and Maida [2017]](https://arxiv.org/abs/1611.03000) and extend it by changing the model architecture and hyperparameters.
 
-![Alt text](docs/Results.jpg)
+<img src="docs/Results.jpg" alt="drawing" width="400"/>
 
 The accuracies reported by the 2017 paper could not be reproduced, but we did find some interesting but unintuitive results when combining promising extensions. The number of active neurons of the STDP layer seems to have a large effect on the effectiveness of the model, but it is very difficult to control.
 
