@@ -1,0 +1,7 @@
+numpy==1.22.0
+scikit-image==0.19.1
+scikit-learn==1.0.2
+matplotlib==3.5.1
+tensorflow==2.7.0
+nengo-dl==3.4.3
+tqdm==4.62.3

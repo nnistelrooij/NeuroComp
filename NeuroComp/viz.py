@@ -3,7 +3,7 @@ from matplotlib.colors import Normalize
 import numpy as np
 
 
-def plot_conv_filters(filter_weights):
+def plot_conv_filters(filter_weights, title='Kernel visualizations'):
     plot_distribution(filter_weights)
 
     num_filters, channels = filter_weights.shape[:2]
@@ -26,7 +26,7 @@ def plot_conv_filters(filter_weights):
             tick.label1.set_visible(False)
             tick.label2.set_visible(False)
 
-    fig.suptitle('Kernel visualizations')
+    fig.suptitle(title)
     plt.show()
 
 
