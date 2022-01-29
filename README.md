@@ -16,7 +16,7 @@ This repository uses the scikit-learn interfaces for training the models. The ba
 The models reported in the paper can be retrained with `retrain.py` and evaluated on the validation split with `eval.py`. Use `pip install -r requirements.txt` to install the requirements before running the code.
 ___
 
-## READ THIS FOR TESTING
+<!-- ## READ THIS FOR TESTING
 
 ## Baseline model by layer
 
@@ -39,7 +39,7 @@ Pick a test and start training; once it is done, upload the model file to `model
 - **STDP neuron count**: ~~64~~, ~~128~~, ~~256~~
 - **Second conv+pool layers**: same parameters as first conv layer, except size: try kernel sizes ~~3~~, ~~5~~, or ~~7~~.
 - **Convolutional weight initialization**: ~~uniform~~, ~~gaussian~~, ~~glorot~~, ~~gabor_uniform~~, ~~gabor_normal~~
-
+ -->
 ## Put your accuracies down here
 
 | Parameters            | Accuracy |
